@@ -1,0 +1,15 @@
+yuraul0.content:
+  path: '/yuraul0'
+  defaults:
+    _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::content'
+    _title: 'Drupal Custom module level 0 (task)'
+  requirements:
+    _permission: 'access content'
+
+yuraul0.admin:
+  path: '/admin/config/development/yuraul0'
+  defaults:
+    _controller: '\Drupal\yuraul0\Controller\Yuraul0AdminController::content'
+    _title: 'Yuraul Admin'
+  requirements:
+    _permission: 'administer site configuration'
