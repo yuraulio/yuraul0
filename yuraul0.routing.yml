@@ -1,15 +1,23 @@
-yuraul0.content:
-  path: '/yuraul0'
+yuraul0.feedback:
+  path: '/feedback'
   defaults:
-    _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::content'
+    _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::feedback'
+    _title: 'Yuraul Guestbook'
+  requirements:
+    _permission: 'access content'
+
+yuraul0.add_feedback:
+  path: '/feedback/form'
+  defaults:
+    _form: 'Drupal\yuraul0\Form\AddFeedback'
     _title: 'Drupal Custom module level 0 (task)'
   requirements:
     _permission: 'access content'
 
 yuraul0.admin:
-  path: '/admin/config/development/yuraul0'
+  path: '/admin/config/yuraul0'
   defaults:
-    _controller: '\Drupal\yuraul0\Controller\Yuraul0AdminController::content'
-    _title: 'Yuraul Admin'
+    _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::admin'
+    _title: 'Guestbook settings'
   requirements:
     _permission: 'administer site configuration'

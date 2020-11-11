@@ -1,6 +1,14 @@
-yuraul0.admin:
-  title: 'Yuraul0 module settings'
-  description: 'example of how to make an admin settings page link'
-  parent: system.admin_config_development
-  route_name: yuraul0.admin
+yuraul0.feedback:
+  title: 'Feedback'
+  description: 'You can leave your feedback here'
+  parent: main
+  route_name: yuraul0.feedback
+  menu_name: main
   weight: 100
+
+yuraul0.admin:
+  title: 'Yuraul Guestbook settings'
+  description: 'Guestbook settings'
+  parent: system.admin_config
+  route_name: yuraul0.admin
+  weight: -100
