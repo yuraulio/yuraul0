@@ -1,0 +1,88 @@
+<?php
+
+/**
+ * @file
+ *
+ * Install, update and uninstall functions for the yuraul0 module.
+ */
+
+///**
+// * Implements hook_install().
+// *
+// * Creates dir to store images and database to store posts
+// */
+//function yuraul0_install() {
+//}
+
+/**
+ * Implements hook_schema().
+ *
+ * Defines the database table to store feeback messages and user information.
+ *
+ * @see hook_schema()
+ */
+function yuraul0_schema() {
+  $schema['guestbook'] = [
+    'description' => 'Stores feedback messages with user information.',
+    'fields' => [
+      'fid' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+        'description' => 'Primary Key: Unique feedback ID.',
+      ],
+      'message' => [
+        'type' => 'text',
+        'length' => 500,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'User\'s feedback text.',
+      ],
+      'picture' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'URI of the attached file.',
+      ],
+      'timestamp' => [
+         'type' => 'int',
+         'size' => 'normal',
+         'not null' => TRUE,
+         'default' => 0,
+         'description' => 'Authored on.'
+       ],
+      'username' => [
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Name of the user.',
+      ],
+      'email' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'User\'s email address.',
+      ],
+      'phone' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'big',
+        'description' => 'The phone number of the user.',
+      ],
+      'avatar' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'User\'s avatar.',
+      ],
+    ],
+    'primary key' => ['fid'],
+  ];
+
+  return $schema;
+}

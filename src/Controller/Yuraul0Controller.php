@@ -11,7 +11,14 @@ namespace Drupal\yuraul0\Controller;
 
 class Yuraul0Controller {
 
+  /**
+   * {@inheritdoc}
+   */
   public function feedback() {
+
+//    return [
+//      '#markup' => 'Done',
+//    ];
 
     return [
       '#type' => 'markup',
