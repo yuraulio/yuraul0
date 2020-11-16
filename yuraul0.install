@@ -35,7 +35,6 @@ function yuraul0_schema() {
         'type' => 'text',
         'length' => 500,
         'not null' => TRUE,
-        'default' => '',
         'description' => 'User\'s feedback text.',
       ],
       'picture' => [
