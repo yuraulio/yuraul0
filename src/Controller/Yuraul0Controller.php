@@ -12,7 +12,7 @@ class Yuraul0Controller {
    */
   public function feedback() {
     $query = \Drupal::database()->select('guestbook');
-    $query->fields('guestbook', ['username', 'message']);
+    $query->fields('guestbook', ['username', 'email']);
 //    $query->addExpression('COUNT(*)');
 //    $count = $query->execute()->fetchField();
     $result = $query->execute()->fetchAll();
@@ -22,7 +22,7 @@ class Yuraul0Controller {
         '#markup' => "
           <ul style=\"color: deepskyblue; \">
             <li>$user->username</li>
-            <li>$user->message</li>
+            <li>$user->email</li>
           </ul>",
       ];
     }
