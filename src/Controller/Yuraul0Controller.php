@@ -12,9 +12,8 @@ class Yuraul0Controller {
    */
   public function feedback() {
     $query = \Drupal::database()->select('guestbook');
-    $query->fields('guestbook', ['username', 'email']);
-//    $query->addExpression('COUNT(*)');
-//    $count = $query->execute()->fetchField();
+    $query->fields('guestbook', ['fid', 'username', 'email']);
+    $query->orderBy('guestbook.fid', 'DESC');
     $result = $query->execute()->fetchAll();
     foreach ($result as $user) {
       $users[] = [

@@ -44,19 +44,19 @@ class AddFeedback extends FormBase {
 //      '#required' => TRUE,
     ];
 //
-//    $form['phone'] = [
-//      '#type' => 'tel',
-//      '#title' => $this->t('Phone number'),
-//      '#description' => $this->t('International format (+XXXXYYYYYYYYYYYY, X = 1-4 digits)'),
-////      '#required' => TRUE,
-//    ];
-//
-//    $form['message'] = [
-//      '#type' => 'textarea',
-//      '#title' => $this->t('Your feedback message'),
-//      '#description' => $this->t('Up to 500 symbols.'),
-////      '#required' => TRUE,
-//    ];
+    $form['phone'] = [
+      '#type' => 'tel',
+      '#title' => $this->t('Phone number'),
+      '#description' => $this->t('International format (+XXXXYYYYYYYYYYYY, X = 1-4 digits)'),
+//      '#required' => TRUE,
+    ];
+
+    $form['message'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Your feedback message'),
+      '#description' => $this->t('Up to 500 symbols.'),
+//      '#required' => TRUE,
+    ];
 //
 //    $form['avatar'] = [
 //      '#type' => 'managed_file',
@@ -104,16 +104,26 @@ class AddFeedback extends FormBase {
    * @inheritDoc
    */
   protected function checkUsername (FormStateInterface $form_state) {
-    $username = preg_match('/^[a-zA-Z][a-zA-Z_0-9]{0,99}$/s', $form_state->getValue('username'));
+    $username = preg_match('/^([a-zA-Z][a-zA-Z_0-9]{0,99})|([a-zA-Z])$/s', $form_state->getValue('username'));
     if ($username === 0) {
       $form_state->setErrorByName('username', $this->t('Name is incorrect.'));
     }
   }
 
+  /**
+   * @inheritDoc
+   */
   protected function checkEmail (FormStateInterface $form_state) {
-    $email = preg_match('/^[a-zA-Z0-9](?!.*(\.\.).*)[a-zA-Z0-9\-\.]*[a-zA-Z0-9]+@[a-zA-Z0-9]+((?!.*(\.\.).*)(?!.*(--).*)(?!.*(\.-).*)(?!.*(-\.).*))([a-zA-Z0-9\-\.]*)[a-zA-Z0-9]$/s', $form_state->getValue('email'));
+    $email = preg_match('/^([a-zA-Z0-9](?!.*(\.\.).*)[a-zA-Z0-9\-\.]*[a-zA-Z0-9]+)|([a-zA-Z0-9])@([a-zA-Z0-9]+((?!.*(\.\.).*)(?!.*(--).*)(?!.*(\.-).*)(?!.*(-\.).*))([a-zA-Z0-9\-\.]*)[a-zA-Z0-9])|([a-zA-Z0-9])$/s', $form_state->getValue('email'));
     if ($email === 0) {
       $form_state->setErrorByName('email', $this->t('Email is incorrect.'));
+    }
+  }
+
+  protected function checkPhone (FormStateInterface $formState) {
+    $phone = preg_match('/^+\d{1,4}\d{8,15}$/s', $formState->getValue('phone'));
+    if ( $phone === 0) {
+      $formState->setErrorByName('phone', $this->t('Bad phone number'));
     }
   }
 
@@ -122,8 +132,11 @@ class AddFeedback extends FormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     \Drupal::messenger()->deleteAll();
+    $v = $form_state->getValues();
     $this->checkUsername($form_state);
     $this->checkEmail($form_state);
+    $this->checkPhone($form_state);
+
   }
 
   /**
