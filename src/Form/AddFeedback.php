@@ -167,9 +167,8 @@ class AddFeedback extends FormBase {
    *   An associative array containing the structure of the form.
    */
   protected function checkMessage(FormStateInterface $form_state) {
-    $match = preg_match('/.{10,500}$/', $form_state->getValue('message'));
-    if ($match === 0) {
-      $form_state->setErrorByName('phone', $this->t('Bad message'));
+    if (mb_strlen($form_state->getValue('message')) > 500) {
+      $form_state->setErrorByName('phone', $this->t('Message is to long.'));
     }
   }
 
@@ -182,20 +181,20 @@ class AddFeedback extends FormBase {
    *   An associative array containing the structure of the form.
    *
    * @return string
-   *   Returns URL of saved file.
+   *   Returns URL of saved file or empty string if file wasn't added.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
   protected function savePics(string $name, FormStateInterface $form_state) {
-    // Trying to get fileID from the submitted form and save the file as entity.
-    try {
-      $fid = $form_state->getValue($name)[0];
+    // Get file ID from the submitted form and save the file as entity.
+    $fid = $form_state->getValue($name)[0];
+    if (!empty($fid)) {
       $file = File::load(($fid));
       // $file->setPermanent(); //Temporary disabled
       $file->save();
       return $file->createFileUrl();
     }
-    // If error occured show it to user.
-    catch (Exception $e) {
-      $form_state->setErrorByName($name, $e->getMessage());
+    else {
       return '';
     }
   }
@@ -240,17 +239,11 @@ class AddFeedback extends FormBase {
     // Adding timestamp.
     $record['timestamp'] = time();
     // Saving received and validated data to database.
-    try {
-      Drupal::database()->insert('guestbook')->fields($record)->execute();
-      // Setting message of succesful adding of feedback message.
-      Drupal::messenger()->addMessage($this->t('Thank you @name, for your feedback!', [
-        '@name' => $form_state->getValue('username'),
-      ]));
-    }
-    catch (Exception $e) {
-      Drupal::messenger()->addError($e->getMessage());
-    }
-
+    Drupal::database()->insert('guestbook')->fields($record)->execute();
+    // Setting message of succesful adding of feedback message.
+    Drupal::messenger()->addMessage($this->t('Thank you @name, for your feedback!', [
+      '@name' => $form_state->getValue('username'),
+    ]));
   }
 
   /**
