@@ -43,7 +43,35 @@ class AddFeedback extends FormBase {
       '#markup' => '<div id="form-system-messages"></div>',
       '#weight' => -100,
     ];
-    $form['username'] = [
+
+    $form['upper'] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => [
+          'upper',
+        ],
+      ],
+    ];
+
+    $form['upper']['left'] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => [
+          'left',
+        ],
+      ],
+    ];
+
+    $form['upper']['right'] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => [
+          'right',
+        ],
+      ],
+    ];
+
+    $form['upper']['left']['username'] = [
       '#type' => 'textfield',
       '#maxlength' => 100,
       '#title' => $this->t('Your name'),
@@ -51,7 +79,7 @@ class AddFeedback extends FormBase {
       '#required' => TRUE,
     ];
 
-    $form['email'] = [
+    $form['upper']['left']['email'] = [
       '#type' => 'email',
       '#maxlength' => 100,
       '#title' => $this->t('E-mail'),
@@ -59,7 +87,7 @@ class AddFeedback extends FormBase {
       '#required' => TRUE,
     ];
 
-    $form['phone'] = [
+    $form['upper']['left']['phone'] = [
       '#type' => 'tel',
       '#maxlength' => 16,
       '#title' => $this->t('Phone number'),
@@ -68,15 +96,7 @@ class AddFeedback extends FormBase {
       '#resizable' => 'both',
     ];
 
-    $form['message'] = [
-      '#type' => 'textarea',
-      '#maxlength' => 500,
-      '#title' => $this->t('Your feedback message'),
-      '#description' => $this->t('Up to 500 symbols.'),
-      '#required' => TRUE,
-    ];
-
-    $form['avatar'] = [
+    $form['upper']['right']['avatar'] = [
       '#type' => 'managed_file',
       '#title' => $this->t('Add your profile picture'),
       '#description' => $this->t('Only *.jpeg, *.jpg, *.png, up to 2MB.'),
@@ -89,7 +109,7 @@ class AddFeedback extends FormBase {
       ],
     ];
 
-    $form['picture'] = [
+    $form['upper']['right']['picture'] = [
       '#type' => 'managed_file',
       '#title' => $this->t('Add picture to your feedback'),
       '#description' => $this->t('Only *.jpeg, *.jpg, *.png, up to 5MB.'),
@@ -99,6 +119,14 @@ class AddFeedback extends FormBase {
         'file_validate_extensions' => ['png jpg jpeg'],
         'file_validate_size' => [5242880],
       ],
+    ];
+
+    $form['message'] = [
+      '#type' => 'textarea',
+      '#maxlength' => 500,
+      '#title' => $this->t('Your feedback message'),
+      '#description' => $this->t('Up to 500 symbols.'),
+      '#required' => TRUE,
     ];
 
     $form['submit'] = [

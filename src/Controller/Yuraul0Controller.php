@@ -52,6 +52,9 @@ class Yuraul0Controller {
     // Adding form for sending post to page.
     $page[] = ['form' => Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback')];
 
+    // Attaching style to the form.
+    $page['form'][] = ['#attached' => ['library' => ['yuraul0/form']]];
+
     // Gettingg path to page template.
     $template = file_get_contents(__DIR__ . '/feedback.html.twig');
 
@@ -62,6 +65,11 @@ class Yuraul0Controller {
         '#template' => $template,
         '#context' => [
           'users' => $this->getFeedback(),
+        ],
+        '#attached' => [
+          'library' => [
+            'yuraul0/guestbook',
+          ],
         ],
       ],
     ];
