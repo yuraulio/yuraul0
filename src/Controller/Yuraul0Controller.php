@@ -2,6 +2,8 @@
 
 namespace Drupal\yuraul0\Controller;
 
+use Drupal\file\Entity\File;
+
 /**
  * Constructs a guestbook page.
  */
@@ -12,16 +14,19 @@ class Yuraul0Controller {
    */
   public function feedback() {
     $query = \Drupal::database()->select('guestbook');
-    $query->fields('guestbook', ['fid', 'username', 'email']);
+    $query->fields('guestbook', ['fid', 'username', 'avatar']);
     $query->orderBy('guestbook.fid', 'DESC');
     $result = $query->execute()->fetchAll();
+
+
+//    <li>$user->message</li>
     foreach ($result as $user) {
       $users[] = [
         '#type' => 'markup',
         '#markup' => "
           <ul style=\"color: deepskyblue; \">
             <li>$user->username</li>
-            <li>$user->email</li>
+            <li><img src='$user->avatar' width='100' height='100'></li>
           </ul>",
       ];
     }
@@ -34,6 +39,15 @@ class Yuraul0Controller {
     if (count($result) > 3) {
       \Drupal::database()->delete('guestbook')->execute();
     }
+
+//    $query = \Drupal::entityQuery('file');
+//    $storage = \Drupal::entityTypeManager()->getStorage('file');
+//    $files = $storage->loadMultiple($query->execute());
+//    foreach ($files as $f) {
+//      if ($f->isPermanent()) {
+//        $f->delete();
+//      }
+//    }
     return $users;
   }
 
