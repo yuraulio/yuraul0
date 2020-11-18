@@ -9,7 +9,6 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Ajax\RedirectCommand;
 use Drupal\file\Entity\File;
-use Exception;
 
 /**
  * Implements a form with AJAX validation for adding feedback.
@@ -254,6 +253,8 @@ class AddFeedback extends FormBase {
   /**
    * AJAX submit callback.
    *
+   * @param array $form
+   *   An associative array containing the elements of the form.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   An associative array containing the structure of the form.
    *

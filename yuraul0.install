@@ -6,13 +6,18 @@
  * Install, update and uninstall functions for the yuraul0 module.
  */
 
-///**
-// * Implements hook_install().
-// *
-// * Creates dir to store images and database to store posts
-// */
-//function yuraul0_install() {
-//}
+use Drupal\Core\File\FileSystemInterface;
+
+/**
+ * Implements hook_install().
+ *
+ * Copy default user picture to files folder.
+ */
+function yuraul0_install() {
+  $dir = 'public://yuraul/user';
+  Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY);
+  Drupal::service('file_system')->copy(__DIR__ . '/default.png', 'public://yuraul/user', FileSystemInterface::EXISTS_REPLACE);
+}
 
 /**
  * Implements hook_schema().

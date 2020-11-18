@@ -2,7 +2,7 @@
 
 namespace Drupal\yuraul0\Controller;
 
-use Drupal\file\Entity\File;
+use Drupal\Core\File\FileSystemInterface;
 
 /**
  * Constructs a guestbook page.
@@ -21,12 +21,18 @@ class Yuraul0Controller {
 
 //    <li>$user->message</li>
     foreach ($result as $user) {
+      if ($user->avatar === '') {
+        $av = '/sites/default/files/yuraul0/user/default.png';
+      }
+      else {
+        $av = $user->avatar;
+      }
       $users[] = [
         '#type' => 'markup',
         '#markup' => "
-          <ul style=\"color: deepskyblue; \">
+          <ul>
             <li>$user->username</li>
-            <li><img src='$user->avatar' width='100' height='100'></li>
+            <li><img src='$av' width='100' height='100'></li>
           </ul>",
       ];
     }
