@@ -37,6 +37,7 @@ class AddFeedback extends FormBase {
     // Deleting error messages from messenger if page was unexpectedly reloaded.
     // But leave other because page will be reloaded after submitting.
     Drupal::messenger()->deleteByType('error');
+
     // Div element to show messages into.
     $form['system_messages'] = [
       '#markup' => '<div id="form-system-messages"></div>',
@@ -177,7 +178,7 @@ class AddFeedback extends FormBase {
   }
 
   /**
-   * Saves userpic and feedback image and returns file URL.
+   * Saves userpic and post image and returns file URL.
    *
    * @param string $name
    *   The name of the form element.
@@ -214,6 +215,7 @@ class AddFeedback extends FormBase {
   public function validateForm(array &$form, FormStateInterface $form_state) {
     // Deleting all messages if stayed from previous validation.
     Drupal::messenger()->deleteAll();
+
     // Validating some fields before saving to database.
     $this->checkUsername($form_state);
     $this->checkEmail($form_state);
@@ -237,13 +239,17 @@ class AddFeedback extends FormBase {
     foreach (['username', 'email', 'phone', 'message'] as $v) {
       $record[$v] = $form_state->getValue($v);
     }
+
     // URLs to user profile picture and message picture.
     $record['avatar'] = $this->savePics('avatar', $form_state);
     $record['picture'] = $this->savePics('picture', $form_state);
-    // Adding timestamp.
+
+    // Adding posted time.
     $record['timestamp'] = time();
+
     // Saving received and validated data to database.
     Drupal::database()->insert('guestbook')->fields($record)->execute();
+
     // Setting message of succesful adding of feedback message.
     Drupal::messenger()->addMessage($this->t('Thank you @name, for your feedback!', [
       '@name' => $form_state->getValue('username'),

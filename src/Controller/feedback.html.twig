@@ -1,0 +1,14 @@
+{#
+/**
+ * @file
+ * Contains the text of the page_example explanation page
+ */
+#}
+
+<h1>Feedbacks</h1>
+<ul>
+  {% for user in users %}
+    <li><img src="{{ user.avatar|e }}"></li>
+    <li>{{ user.timestamp|e }}</li>
+  {% endfor %}
+</ul>

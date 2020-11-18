@@ -14,7 +14,7 @@ use Drupal\Core\File\FileSystemInterface;
  * Copy default user picture to files folder.
  */
 function yuraul0_install() {
-  $dir = 'public://yuraul/user';
+  $dir = 'public://yuraul0/user';
   Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY);
   Drupal::service('file_system')->copy(__DIR__ . '/default.png', 'public://yuraul/user', FileSystemInterface::EXISTS_REPLACE);
 }

@@ -2,50 +2,69 @@
 
 namespace Drupal\yuraul0\Controller;
 
-use Drupal\Core\File\FileSystemInterface;
+use Drupal;
 
 /**
- * Constructs a guestbook page.
+ * Constructs a guestbook page and admin panel.
  */
 class Yuraul0Controller {
 
   /**
-   * {@inheritdoc}
+   * Returns post data from database prepared to rendering.
+   */
+  protected function getFeedback() {
+    // Get posts from database.
+    $query = Drupal::database()->select('guestbook');
+    $query->fields('guestbook', [
+      'fid',
+      'message',
+      'picture',
+      'timestamp',
+      'username',
+      'email',
+      'phone',
+      'avatar',
+    ]);
+
+    // Sort it newest first.
+    $query->orderBy('guestbook.fid', 'DESC');
+    $feedbacks = $query->execute()->fetchAll();
+
+    // Setting default user profile picture of not exist.
+    foreach ($feedbacks as $post) {
+      if ($post->avatar === '') {
+        $post->avatar = '/sites/default/files/yuraul0/user/default.png';
+      }
+      // And converting timestamp to human readable string.
+      $post->timestamp = date('F/d/Y H:i:s', $post->timestamp);
+    }
+    // Deleting records if it's too much.
+    if (count($feedbacks) > 3) {
+      Drupal::database()->delete('guestbook')->execute();
+    }
+    return $feedbacks;
+  }
+
+  /**
+   * Builds the guestbook page.
    */
   public function feedback() {
-    $query = \Drupal::database()->select('guestbook');
-    $query->fields('guestbook', ['fid', 'username', 'avatar']);
-    $query->orderBy('guestbook.fid', 'DESC');
-    $result = $query->execute()->fetchAll();
+    // Adding form for sending post to page.
+    $page[] = ['form' => Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback')];
 
+    // Gettingg path to page template.
+    $template = file_get_contents(__DIR__ . '/feedback.html.twig');
 
-//    <li>$user->message</li>
-    foreach ($result as $user) {
-      if ($user->avatar === '') {
-        $av = '/sites/default/files/yuraul0/user/default.png';
-      }
-      else {
-        $av = $user->avatar;
-      }
-      $users[] = [
-        '#type' => 'markup',
-        '#markup' => "
-          <ul>
-            <li>$user->username</li>
-            <li><img src='$av' width='100' height='100'></li>
-          </ul>",
-      ];
-    }
-    $users[] = [
-      '#type' => 'markup',
-      '#markup' => t('<div style="color: deepskyblue;">This is my module!</div>'),
-      'form' =>  \Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback'),
+    // Adding list of posts with the template to render.
+    $page[] = [
+      'feedbacks' => [
+        '#type' => 'inline_template',
+        '#template' => $template,
+        '#context' => [
+          'users' => $this->getFeedback(),
+        ],
+      ],
     ];
-    //Deleting records if it's too much
-    if (count($result) > 3) {
-      \Drupal::database()->delete('guestbook')->execute();
-    }
-
 //    $query = \Drupal::entityQuery('file');
 //    $storage = \Drupal::entityTypeManager()->getStorage('file');
 //    $files = $storage->loadMultiple($query->execute());
@@ -54,7 +73,8 @@ class Yuraul0Controller {
 //        $f->delete();
 //      }
 //    }
-    return $users;
+
+    return $page;
   }
 
   public function admin() {
