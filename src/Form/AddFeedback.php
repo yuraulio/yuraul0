@@ -45,6 +45,7 @@ class AddFeedback extends FormBase {
     ];
     $form['username'] = [
       '#type' => 'textfield',
+      '#maxlength' => 100,
       '#title' => $this->t('Your name'),
       '#description' => $this->t('Only letters, numbers and underscore, please. Up to 100 symbols'),
       '#required' => TRUE,
@@ -52,6 +53,7 @@ class AddFeedback extends FormBase {
 
     $form['email'] = [
       '#type' => 'email',
+      '#maxlength' => 100,
       '#title' => $this->t('E-mail'),
       '#description' => $this->t('Only letters, numbers and underscore in account name. Only letters and "." (dot) in domain.'),
       '#required' => TRUE,
@@ -59,13 +61,16 @@ class AddFeedback extends FormBase {
 
     $form['phone'] = [
       '#type' => 'tel',
+      '#maxlength' => 16,
       '#title' => $this->t('Phone number'),
       '#description' => $this->t('International format (+XXXXYYYYYYYYYYYY, X = 1-4 digits)'),
       '#required' => TRUE,
+      '#resizable' => 'both',
     ];
 
     $form['message'] = [
       '#type' => 'textarea',
+      '#maxlength' => 500,
       '#title' => $this->t('Your feedback message'),
       '#description' => $this->t('Up to 500 symbols.'),
       '#required' => TRUE,
