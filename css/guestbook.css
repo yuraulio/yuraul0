@@ -2,15 +2,8 @@ h1.page-title {
   text-align: center;
 }
 
-.post-container {
-  float: left;
-}
-.form-container {
-  float: right;
-}
-
 .main-content .post-container h2 {
-  margin: 15px;
+  margin: 45px 0 15px;
   text-align: center;
 }
 
