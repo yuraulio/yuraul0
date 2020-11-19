@@ -39,12 +39,18 @@ class AddFeedback extends FormBase {
     Drupal::messenger()->deleteByType('error');
 
     // Div element to show messages into.
-    $form['system_messages'] = [
+    $form['fieldset'] = [
+      '#type' => 'fieldset',
+      '#title' => $this
+        ->t('Add feedback'),
+    ];
+
+    $form['fieldset']['system_messages'] = [
       '#markup' => '<div id="form-system-messages"></div>',
       '#weight' => -100,
     ];
 
-    $form['upper'] = [
+    $form['fieldset']['upper'] = [
       '#type' => 'container',
       '#attributes' => [
         'class' => [
@@ -53,7 +59,7 @@ class AddFeedback extends FormBase {
       ],
     ];
 
-    $form['upper']['left'] = [
+    $form['fieldset']['upper']['left'] = [
       '#type' => 'container',
       '#attributes' => [
         'class' => [
@@ -62,7 +68,7 @@ class AddFeedback extends FormBase {
       ],
     ];
 
-    $form['upper']['right'] = [
+    $form['fieldset']['upper']['right'] = [
       '#type' => 'container',
       '#attributes' => [
         'class' => [
@@ -71,7 +77,7 @@ class AddFeedback extends FormBase {
       ],
     ];
 
-    $form['upper']['left']['username'] = [
+    $form['fieldset']['upper']['left']['username'] = [
       '#type' => 'textfield',
       '#maxlength' => 100,
       '#title' => $this->t('Your name'),
@@ -79,7 +85,7 @@ class AddFeedback extends FormBase {
       '#required' => TRUE,
     ];
 
-    $form['upper']['left']['email'] = [
+    $form['fieldset']['upper']['left']['email'] = [
       '#type' => 'email',
       '#maxlength' => 100,
       '#title' => $this->t('E-mail'),
@@ -87,7 +93,7 @@ class AddFeedback extends FormBase {
       '#required' => TRUE,
     ];
 
-    $form['upper']['left']['phone'] = [
+    $form['fieldset']['upper']['left']['phone'] = [
       '#type' => 'tel',
       '#maxlength' => 16,
       '#title' => $this->t('Phone number'),
@@ -96,7 +102,7 @@ class AddFeedback extends FormBase {
       '#resizable' => 'both',
     ];
 
-    $form['upper']['right']['avatar'] = [
+    $form['fieldset']['upper']['right']['avatar'] = [
       '#type' => 'managed_file',
       '#title' => $this->t('Add your profile picture'),
       '#description' => $this->t('Only *.jpeg, *.jpg, *.png, up to 2MB.'),
@@ -109,7 +115,7 @@ class AddFeedback extends FormBase {
       ],
     ];
 
-    $form['upper']['right']['picture'] = [
+    $form['fieldset']['upper']['right']['picture'] = [
       '#type' => 'managed_file',
       '#title' => $this->t('Add picture to your feedback'),
       '#description' => $this->t('Only *.jpeg, *.jpg, *.png, up to 5MB.'),
@@ -121,7 +127,7 @@ class AddFeedback extends FormBase {
       ],
     ];
 
-    $form['message'] = [
+    $form['fieldset']['message'] = [
       '#type' => 'textarea',
       '#maxlength' => 500,
       '#title' => $this->t('Your feedback message'),
@@ -129,7 +135,7 @@ class AddFeedback extends FormBase {
       '#required' => TRUE,
     ];
 
-    $form['submit'] = [
+    $form['fieldset']['submit'] = [
       '#type' => 'submit',
       '#name' => 'submit',
       '#button_type' => 'primary',

@@ -1,4 +1,60 @@
-input {
-  color: blue;
-  width: 60px;
+form.add-feedback {
+  max-width: 768px;
 }
+
+form.add-feedback .fieldset-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+form.add-feedback legend {
+  margin: 0 auto;
+  font-size: 1.5em;
+}
+
+#form-system-messages {
+  width: 100%;
+}
+
+form.add-feedback .upper {
+  display: flex;
+  width: 100%;
+}
+form.add-feedback .left {
+  width: 50%;
+  padding: 15px;
+}
+
+form.add-feedback .upper input {
+  width: 100%;
+}
+form.add-feedback .right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  width: 50%;
+  padding: 15px;
+}
+
+form.add-feedback {
+  width: 100%;
+  margin-top: 0;
+  padding: 0 15px 15px;
+}
+
+.form-type-textarea {
+  width: 100%;
+  margin-top: 0;
+}
+
+form.add-feedback .form-type-textarea label,
+#edit-message--description {
+  padding-left: 15px;
+}
+
+form.add-feedback .form-textarea-wrapper {
+  padding: 0 15px;
+}
+
