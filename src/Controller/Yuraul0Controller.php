@@ -39,9 +39,9 @@ class Yuraul0Controller {
       $post->timestamp = date('F/d/Y H:i:s', $post->timestamp);
     }
     // Deleting records if it's too much.
-    if (count($feedbacks) > 3) {
-      Drupal::database()->delete('guestbook')->execute();
-    }
+//    if (count($feedbacks) > 3) {
+//      Drupal::database()->delete('guestbook')->execute();
+//    }
     return $feedbacks;
   }
 

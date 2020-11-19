@@ -1,5 +1,7 @@
 form.add-feedback {
+  margin: 0 auto;
   max-width: 768px;
+  background-color: deepskyblue;
 }
 
 form.add-feedback .fieldset-wrapper {
@@ -8,9 +10,14 @@ form.add-feedback .fieldset-wrapper {
   align-items: center;
 }
 
+form.add-feedback fieldset, form.add-feedback input {
+  border-color: white;
+}
+
 form.add-feedback legend {
   margin: 0 auto;
   font-size: 1.5em;
+  border-color: white;
 }
 
 #form-system-messages {
@@ -58,3 +65,14 @@ form.add-feedback .form-textarea-wrapper {
   padding: 0 15px;
 }
 
+
+form.add-feedback input.button {
+  border-radius: 0;
+  background-image: none;
+  background-color: white;
+}
+
+form.add-feedback input.button:hover {
+  background-color: deepskyblue;
+  color: white;
+}

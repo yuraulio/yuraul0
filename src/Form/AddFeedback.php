@@ -229,7 +229,7 @@ class AddFeedback extends FormBase {
     $fid = $form_state->getValue($name)[0];
     if (!empty($fid)) {
       $file = File::load(($fid));
-      // $file->setPermanent(); //Temporary disabled
+      $file->setPermanent();
       $file->save();
       return $file->createFileUrl();
     }

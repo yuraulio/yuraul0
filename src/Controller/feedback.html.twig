@@ -1,29 +1,35 @@
-{#
-/**
- * @file
- * Contains the text of the page_example explanation page
- */
-#}
 <div class="post-container">
   <h2>Guests talking about us...</h2>
   {% for post in posts %}
-    <div class="post">
-      <div class="top-header">
-        <span class="username">{{ post.username|e }}</span>
-        <span class="time">{{ post.timestamp|e }}</span>
-        <img src="{{ post.avatar }}">
-      </div>
+    <article class="post">
+      <aside class="user-info">
+        <h3 class="username">{{ post.username|e }}</h3>
+        <div class="avatar-container">
+          <img class="avatar" src="{{ post.avatar|e }}">
+        </div>
+        <ul>
+          <li class="usermail"><span>e-mail:</span><br>{{ post.email|e }}</li>
+          <li class="userphone"><span>phone:</span><br>+{{ post.phone|e }}</li>
+        </ul>
+      </aside>
       <div class="post-message">
-        <p>{{ post.message|e }}</p>
-        {% if not post.picture == '' %}
-          <img class="post-picture" src="{{ post.picture }}">
-        {% endif %}
+        <div class="post-header">
+          <span class="user">Posted by {{ post.username|e }} on &nbsp;</span>
+          <span class="time">{{ post.timestamp|e }}</span>
+        </div>
+        <div class="post-body">
+          <p>{{ post.message|e }}</p>
+          {% if not post.picture == '' %}
+            <p class="attached">Attached image:</p>
+            <img class="post-picture" src="{{ post.picture|e }}">
+            <div class="full-post-picture">
+              <img src="{{ post.picture|e }}">
+            </div>
+          {% endif %}
+        </div>
       </div>
-      <div class="post-footer">
-        <span class="usermail">{{ post.email }}</span>
-        <span class="userphone">{{ post.phone }}</span>
-      </div>
-    </div>
+    </article>
   {% endfor %}
+</div>
 </div>
 

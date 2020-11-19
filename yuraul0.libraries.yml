@@ -3,6 +3,8 @@ guestbook:
   css:
     layout:
       css/guestbook.css: {}
+  js:
+    js/picture.js: {}
 
 form:
   version: 1.0
