@@ -64,7 +64,7 @@ class Yuraul0Controller {
         '#type' => 'inline_template',
         '#template' => $template,
         '#context' => [
-          'users' => $this->getFeedback(),
+          'posts' => $this->getFeedback(),
         ],
         '#attached' => [
           'library' => [
