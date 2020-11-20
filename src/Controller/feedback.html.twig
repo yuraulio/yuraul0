@@ -5,7 +5,7 @@
       <aside class="user-info">
         <h3 class="username">{{ post.username|e }}</h3>
         <div class="avatar-container">
-          <img class="avatar" src="{{ post.avatar|e }}">
+          <img class="avatar" src="{{ post.avatar|e }}" alt="Avatar of the user">
         </div>
         <ul>
           <li class="usermail"><span>e-mail:</span><br>{{ post.email|e }}</li>
@@ -21,9 +21,9 @@
           <p>{{ post.message|e }}</p>
           {% if not post.picture == '' %}
             <p class="attached">Attached image:</p>
-            <img class="post-picture" src="{{ post.picture|e }}">
+            <img class="post-picture" src="{{ post.picture|e }}" alt="Attached picture">
             <div class="full-post-picture">
-              <img src="{{ post.picture|e }}">
+              <img src="{{ post.picture|e }}" alt="Attached picture">
             </div>
           {% endif %}
         </div>
