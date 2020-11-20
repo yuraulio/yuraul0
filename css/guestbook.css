@@ -31,7 +31,7 @@ h1.page-title {
   text-align: center;
 }
 
-.user-info ul li{
+.user-info ul li {
   font-family: sans-serif;
 }
 
@@ -84,7 +84,8 @@ img.avatar {
   max-width: 200px;
 }
 
-.post-picture:hover, .full-post-picture:hover {
+.post-picture:hover,
+.full-post-picture:hover {
   cursor: pointer;
 }
 
@@ -105,9 +106,8 @@ img.avatar {
   display: flex;
 }
 
-
-
-
-
-
-
+@media (max-width: 768px) {
+  .post-picture {
+    width: 100%;
+  }
+}
