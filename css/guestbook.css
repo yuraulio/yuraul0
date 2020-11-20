@@ -106,6 +106,20 @@ img.avatar {
   display: flex;
 }
 
+.admin {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.admin button + button {
+  margin-left: 15px;
+}
+
+.admin button {
+  color: black;
+}
+
 @media (max-width: 768px) {
   .post-picture {
     width: 100%;

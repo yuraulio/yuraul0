@@ -57,7 +57,8 @@ class Yuraul0Controller {
 
     // Gettingg path to page template.
     $template = file_get_contents(__DIR__ . '/feedback.html.twig');
-
+//    $usr = Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+    $permission = \Drupal::currentUser()->hasPermission('administer site configuration');
     // Adding list of posts with the template to render.
     $page[] = [
       'feedbacks' => [
@@ -65,6 +66,7 @@ class Yuraul0Controller {
         '#template' => $template,
         '#context' => [
           'posts' => $this->getFeedback(),
+          'can_edit' => $permission,
         ],
         '#attached' => [
           'library' => [

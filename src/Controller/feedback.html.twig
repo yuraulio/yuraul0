@@ -27,6 +27,12 @@
             </div>
           {% endif %}
         </div>
+        {% if can_edit %}
+        <div class="admin" id="postId_{{ post.fid }}">
+          <button>Edit</button>
+          <button>Delete</button>
+        </div>
+        {% endif %}
       </div>
     </article>
   {% endfor %}
