@@ -27,5 +27,7 @@ yuraul0.edit:
   defaults:
     _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::editPost'
     _title: 'Edit post'
+    action: ''
+    id: ''
   requirements:
     _permission: 'administer site configuration'

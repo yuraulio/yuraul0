@@ -5,6 +5,7 @@ namespace Drupal\yuraul0\Controller;
 use Drupal;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * Constructs a guestbook page and admin panel.
@@ -101,13 +102,25 @@ class Yuraul0Controller {
   }
 
   public function editPost($action, $id) {
-    if ($action == 'delete') {
-      Drupal::database()
-        ->delete('guestbook')
-        ->condition('fid', "$id")
-        ->execute();
+    if (\Drupal::currentUser()->hasPermission('administer site configuration')) {
+      switch ($action) {
+        case 'edit':
+          Drupal::messenger()->addMessage("Post #$id successfully edited!");
+          break;
+
+        case 'delete':
+          if (\Drupal::currentUser()->hasPermission('administer site configuration')) {
+            Drupal::database()
+              ->delete('guestbook')
+              ->condition('fid', "$id")
+              ->execute();
+            Drupal::messenger()->addMessage("Post #$id successfully deleted!");
+          }
+      }
     }
-     Drupal::messenger()->addMessage("$action post number $id");
+    else {
+      throw new AccessDeniedHttpException();
+    }
     return $this->feedback();
   }
 

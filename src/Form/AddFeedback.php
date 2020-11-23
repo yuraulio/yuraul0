@@ -226,7 +226,7 @@ class AddFeedback extends FormBase {
    */
   protected function savePics(string $name, FormStateInterface $form_state) {
     // Get file ID from the submitted form and save the file as entity.
-    $fid = $form_state->getValue($name)[0];
+    $fid = $form_state->getValue($name)[0] ?? NULL;
     if (!empty($fid)) {
       $file = File::load(($fid));
       $file->setPermanent();
@@ -307,8 +307,7 @@ class AddFeedback extends FormBase {
     // to current path and deleting error messages from messenger (because it
     // will be there after redirect).
     if (count($form_state->getErrors()) === 0) {
-      $current_path = Drupal::service('path.current')->getPath();
-      $ajax_response->addCommand(new RedirectCommand($current_path));
+      $ajax_response->addCommand(new RedirectCommand('/feedback'));
       Drupal::messenger()->deleteByType('error');
     }
     // Else sending response with rendered errors to show it in form.
