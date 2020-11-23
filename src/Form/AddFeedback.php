@@ -34,10 +34,6 @@ class AddFeedback extends FormBase {
    *   Returns element for the render array.
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    // Deleting error messages from messenger if page was unexpectedly reloaded.
-    // But leave other because page will be reloaded after submitting.
-    Drupal::messenger()->deleteByType('error');
-
     // Div element to show messages into.
     $form['fieldset'] = [
       '#type' => 'fieldset',

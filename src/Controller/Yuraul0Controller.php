@@ -3,8 +3,6 @@
 namespace Drupal\yuraul0\Controller;
 
 use Drupal;
-use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\HtmlCommand;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -110,11 +108,16 @@ class Yuraul0Controller {
 
         case 'delete':
           if (\Drupal::currentUser()->hasPermission('administer site configuration')) {
-            Drupal::database()
+            $res = Drupal::database()
               ->delete('guestbook')
               ->condition('fid', "$id")
               ->execute();
-            Drupal::messenger()->addMessage("Post #$id successfully deleted!");
+            if ($res) {
+              Drupal::messenger()->addMessage("Post $id successfully deleted!");
+            }
+            else {
+              Drupal::messenger()->addError("Post #$id not found!");
+            }
           }
       }
     }
