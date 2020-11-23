@@ -33,12 +33,12 @@ class AddFeedback extends FormBase {
    * @return array
    *   Returns element for the render array.
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state, $post_ID = NULL) {
     // Div element to show messages into.
     $form['fieldset'] = [
       '#type' => 'fieldset',
       '#title' => $this
-        ->t('Add feedback'),
+        ->t('Add feedback, post ID: @postID', ['@postID' => $post_ID ?? 'Empty']),
     ];
 
     $form['fieldset']['system_messages'] = [

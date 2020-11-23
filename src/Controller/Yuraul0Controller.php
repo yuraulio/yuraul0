@@ -103,8 +103,10 @@ class Yuraul0Controller {
     if (\Drupal::currentUser()->hasPermission('administer site configuration')) {
       switch ($action) {
         case 'edit':
-          Drupal::messenger()->addMessage("Post #$id successfully edited!");
-          break;
+          return [
+            Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback', $id),
+            ['#attached' => ['library' => ['yuraul0/form']]],
+          ];
 
         case 'delete':
           if (\Drupal::currentUser()->hasPermission('administer site configuration')) {
