@@ -21,3 +21,11 @@ yuraul0.admin:
     _title: 'Guestbook settings'
   requirements:
     _permission: 'administer site configuration'
+
+yuraul0.edit:
+  path: '/feedback/action/{action}/{id}'
+  defaults:
+    _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::editPost'
+    _title: 'Edit post'
+  requirements:
+    _permission: 'administer site configuration'

@@ -3,6 +3,8 @@
 namespace Drupal\yuraul0\Controller;
 
 use Drupal;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\HtmlCommand;
 
 /**
  * Constructs a guestbook page and admin panel.
@@ -57,7 +59,6 @@ class Yuraul0Controller {
 
     // Gettingg path to page template.
     $template = file_get_contents(__DIR__ . '/feedback.html.twig');
-//    $usr = Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
     $permission = \Drupal::currentUser()->hasPermission('administer site configuration');
     // Adding list of posts with the template to render.
     $page[] = [
@@ -67,6 +68,18 @@ class Yuraul0Controller {
         '#context' => [
           'posts' => $this->getFeedback(),
           'can_edit' => $permission,
+          'edit' => [
+            '#type' => 'button',
+            '#value' => 'Edit',
+            '#ajax' => [
+              'callback' => '::ajaxCallback',
+              'event' => 'click',
+              'progress' => [
+                'type' => 'throbber',
+                'message' => 'Editing...',
+              ],
+            ],
+          ],
         ],
         '#attached' => [
           'library' => [
@@ -87,10 +100,22 @@ class Yuraul0Controller {
     return $page;
   }
 
-  public function admin() {
-    return array(
-      '#type' => 'markup',
-      '#markup' => t('<div style="color: red;">Administrate it!</div>'),
-    );
+  public function editPost($action, $id) {
+    if ($action == 'delete') {
+      Drupal::database()
+        ->delete('guestbook')
+        ->condition('fid', "$id")
+        ->execute();
+    }
+     Drupal::messenger()->addMessage("$action post number $id");
+    return $this->feedback();
   }
+
+  public function admin() {
+    return [
+      '#type' => 'markup',
+      '#markup' => t('<div style="color: red;">Admin!</div>'),
+    ];
+  }
+
 }
