@@ -187,6 +187,7 @@ class AddFeedback extends FormBase {
       ],
     ];
 
+    $form_state->setRedirect('yuraul0.feedback'); // TODO: Розібратись з редіректом!
     return $form;
   }
 
@@ -343,25 +344,39 @@ class AddFeedback extends FormBase {
     $ajax_response = new AjaxResponse();
     // If there are no validation errors sending response with redirect
     // to feedback page.
-    if (count($form_state->getErrors()) === 0) {
-      $url = Url::fromRoute('yuraul0.feedback')->toString();
-      $ajax_response->addCommand(new RedirectCommand($url));
-    }
-    // Else sending response with rendered errors to show it in form.
-    else {
-      $message = [
-        '#theme' => 'status_messages',
-        '#message_list' => Drupal::messenger()->all(),
-        '#status_headings' => [
-          'status' => t('Status message'),
-          'error' => t('Error message'),
-          'warning' => t('Warning message'),
-        ],
-        '#marckup' => time(),
-      ];
-      $messages = Drupal::service('renderer')->render($message);
-      $ajax_response->addCommand(new HtmlCommand('#form-system-messages', $messages));
-    }
+//    if (count($form_state->getErrors()) === 0) {
+//      $url = Url::fromRoute('yuraul0.feedback')->toString();
+//      $ajax_response->addCommand(new RedirectCommand($url));
+//    }
+//    // Else sending response with rendered errors to show it in form.
+//    else {
+//      $message = [
+//        '#theme' => 'status_messages',
+//        '#message_list' => Drupal::messenger()->all(),
+//        '#status_headings' => [
+//          'status' => t('Status message'),
+//          'error' => t('Error message'),
+//          'warning' => t('Warning message'),
+//        ],
+//        '#marckup' => time(),
+//      ];
+//    }
+
+// TODO: Test!
+    $message = [
+      '#theme' => 'status_messages',
+      '#message_list' => Drupal::messenger()->all(),
+      '#status_headings' => [
+        'status' => t('Status message'),
+        'error' => t('Error message'),
+        'warning' => t('Warning message'),
+      ],
+      '#marckup' => time(),
+    ];
+    $messages = Drupal::service('renderer')->render($message);
+    $ajax_response->addCommand(new HtmlCommand('#form-system-messages', $messages));
+//    $url = Url::fromRoute('yuraul0.feedback')->toString();
+//    $ajax_response->addCommand(new RedirectCommand($url));
     return $ajax_response;
   }
 

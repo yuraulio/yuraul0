@@ -4,6 +4,7 @@ namespace Drupal\yuraul0\Controller;
 
 use Drupal;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\file\Entity\File;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -41,18 +42,12 @@ class Yuraul0Controller extends ControllerBase {
       }
       else {
         // Converting avatar file ID to URL.
-        $post->avatar = Drupal::entityTypeManager()
-          ->getStorage('file')
-          ->load($post->avatar)
-          ->createFileUrl();
+        $post->avatar = File::->load($post->avatar)->createFileUrl();
       }
 
       // Converting post picture file ID to URL.
       if ($post->picture !== '') {
-        $post->picture = Drupal::entityTypeManager()
-          ->getStorage('file')
-          ->load($post->picture)
-          ->createFileUrl();
+        $post->picture = File::load($post->picture)->createFileUrl();
       }
       // And converting timestamp to human readable string.
       $post->timestamp = date('F/d/Y H:i:s', $post->timestamp);
@@ -122,17 +117,11 @@ class Yuraul0Controller extends ControllerBase {
           if ($record) {
             // Delete avatar file if exists.
             if ($record[0]->avatar !== '') {
-              Drupal::entityTypeManager()
-                ->getStorage('file')
-                ->load($record[0]->avatar)
-                ->delete();
+              File::load($record[0]->avatar)->delete();
             }
             // Delete post picture file if exists.
             if ($record[0]->picture !== '') {
-              Drupal::entityTypeManager()
-                ->getStorage('file')
-                ->load($record[0]->picture)
-                ->delete();
+              File::load($record[0]->picture)->delete();
             }
             // Delete record from DB.
             $res = Drupal::database() // TODO: Do something with it or delete.
