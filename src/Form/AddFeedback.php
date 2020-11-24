@@ -276,6 +276,7 @@ class AddFeedback extends FormBase {
       $file = File::load(($fid));
       $file->setPermanent();
       $file->save();
+      Drupal::service('file.usage')->add($file, 'yuraul0', 'file', $fid);
       return $file->id();
     }
     else {
