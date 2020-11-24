@@ -46,8 +46,9 @@ class AddFeedback extends FormBase {
    *   Returns element for the render array.
    */
   public function buildForm(array $form, FormStateInterface $form_state, $post_ID = FALSE) {
-    // Setting the form title.
+    // Setting the form title and submit button value.
     $title = $this->t('Add feedback');
+    $submit_title = $this->t('Send feedback');
 
     // If received $postID get appropriate post from DB if exists.
     if ($post_ID) {
@@ -57,6 +58,7 @@ class AddFeedback extends FormBase {
       $post = $query->execute()->fetchAll();
       if ($post ?? FALSE) {
         $title = $this->t('Edit post# @postID', ['@postID' => $post_ID]);
+        $submit_title = $this->t('Save');
       }
       else {
         Drupal::messenger()->addError("Post #$post_ID not found!");
@@ -134,7 +136,7 @@ class AddFeedback extends FormBase {
       '#description' => $this->t('International format (+XXXXYYYYYYYYYYYY, X = 1-4 digits)'),
       '#required' => TRUE,
       '#resizable' => 'both',
-      '#default_value' => $post[0]->phone,
+      '#default_value' => "+{$post[0]->phone}",
     ];
 
     $form['fieldset']['upper']['right']['avatar'] = [
@@ -177,7 +179,7 @@ class AddFeedback extends FormBase {
       '#type' => 'submit',
       '#name' => 'submit',
       '#button_type' => 'primary',
-      '#value' => $this->t('Send feedback'),
+      '#value' => $submit_title,
       '#ajax' => [
         'callback' => '::ajaxSubmitCallback',
         'event' => 'click',
@@ -187,7 +189,11 @@ class AddFeedback extends FormBase {
       ],
     ];
 
-    $form_state->setRedirect('yuraul0.feedback'); // TODO: Розібратись з редіректом!
+    $form['post_id'] = [
+      '#type' => 'hidden',
+      '#value' => $post_ID,
+    ];
+
     return $form;
   }
 
@@ -317,16 +323,32 @@ class AddFeedback extends FormBase {
     $record['avatar'] = $this->savePics('avatar', $form_state);
     $record['picture'] = $this->savePics('picture', $form_state);
 
-    // Adding posted time.
-    $record['timestamp'] = time();
+    $postID = $form_state->getValue('post_id');
+    if ($postID) {
+      // Update appropriate record in database.
+      Drupal::database()
+        ->update('guestbook')
+        ->fields($record)
+        ->condition('fid', $postID)
+        ->execute();
+      // Setting message of successful editing of the post.
+      Drupal::messenger()->addMessage($this->t('Post #@postID was successfully updated!', [
+        '@postID' => $postID,
+      ]));
+    }
+    else {
+      // Adding posted time.
+      $record['timestamp'] = time();
 
-    // Saving received and validated data to database.
-    Drupal::database()->insert('guestbook')->fields($record)->execute();
+      // Saving received and validated data to database.
+      Drupal::database()->insert('guestbook')->fields($record)->execute();
 
-    // Setting message of succesful adding of feedback message.
-    Drupal::messenger()->addMessage($this->t('Thank you @name for your feedback!', [
-      '@name' => $form_state->getValue('username'),
-    ]));
+      // Setting message of succesful adding of feedback message.
+      Drupal::messenger()->addMessage($this->t('Thank you @name for your feedback!', [
+        '@name' => $form_state->getValue('username'),
+      ]));
+    }
+
   }
 
   /**
@@ -344,39 +366,26 @@ class AddFeedback extends FormBase {
     $ajax_response = new AjaxResponse();
     // If there are no validation errors sending response with redirect
     // to feedback page.
-//    if (count($form_state->getErrors()) === 0) {
-//      $url = Url::fromRoute('yuraul0.feedback')->toString();
-//      $ajax_response->addCommand(new RedirectCommand($url));
-//    }
-//    // Else sending response with rendered errors to show it in form.
-//    else {
-//      $message = [
-//        '#theme' => 'status_messages',
-//        '#message_list' => Drupal::messenger()->all(),
-//        '#status_headings' => [
-//          'status' => t('Status message'),
-//          'error' => t('Error message'),
-//          'warning' => t('Warning message'),
-//        ],
-//        '#marckup' => time(),
-//      ];
-//    }
+    if (count($form_state->getErrors()) === 0) {
+      $url = Url::fromRoute('yuraul0.feedback')->toString();
+      $ajax_response->addCommand(new RedirectCommand($url));
+    }
+    // Else sending response with rendered errors to show it in form.
+    else {
+      $message = [
+        '#theme' => 'status_messages',
+        '#message_list' => Drupal::messenger()->all(),
+        '#status_headings' => [
+          'status' => t('Status message'),
+          'error' => t('Error message'),
+          'warning' => t('Warning message'),
+        ],
+        '#marckup' => time(),
+      ];
+      $messages = Drupal::service('renderer')->render($message);
+      $ajax_response->addCommand(new HtmlCommand('#form-system-messages', $messages));
+    }
 
-// TODO: Test!
-    $message = [
-      '#theme' => 'status_messages',
-      '#message_list' => Drupal::messenger()->all(),
-      '#status_headings' => [
-        'status' => t('Status message'),
-        'error' => t('Error message'),
-        'warning' => t('Warning message'),
-      ],
-      '#marckup' => time(),
-    ];
-    $messages = Drupal::service('renderer')->render($message);
-    $ajax_response->addCommand(new HtmlCommand('#form-system-messages', $messages));
-//    $url = Url::fromRoute('yuraul0.feedback')->toString();
-//    $ajax_response->addCommand(new RedirectCommand($url));
     return $ajax_response;
   }
 

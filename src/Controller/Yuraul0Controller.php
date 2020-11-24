@@ -42,7 +42,7 @@ class Yuraul0Controller extends ControllerBase {
       }
       else {
         // Converting avatar file ID to URL.
-        $post->avatar = File::->load($post->avatar)->createFileUrl();
+        $post->avatar = File::load($post->avatar)->createFileUrl();
       }
 
       // Converting post picture file ID to URL.
