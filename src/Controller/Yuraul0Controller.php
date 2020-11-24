@@ -3,12 +3,24 @@
 namespace Drupal\yuraul0\Controller;
 
 use Drupal;
+use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * Constructs a guestbook page and admin panel.
  */
-class Yuraul0Controller {
+class Yuraul0Controller extends ControllerBase {
+  // Fields of post DB record.
+  private const FIELDS = [
+    'fid',
+    'message',
+    'picture',
+    'timestamp',
+    'username',
+    'email',
+    'phone',
+    'avatar',
+  ];
 
   /**
    * Returns post data from database prepared to rendering.
@@ -16,16 +28,7 @@ class Yuraul0Controller {
   protected function getFeedback() {
     // Get posts from database.
     $query = Drupal::database()->select('guestbook');
-    $query->fields('guestbook', [
-      'fid',
-      'message',
-      'picture',
-      'timestamp',
-      'username',
-      'email',
-      'phone',
-      'avatar',
-    ]);
+    $query->fields('guestbook', self::FIELDS);
 
     // Sort it newest first.
     $query->orderBy('guestbook.fid', 'DESC');
@@ -92,41 +95,64 @@ class Yuraul0Controller {
     return $page;
   }
 
-  public function editPost($action, $id) {
-    if (\Drupal::currentUser()->hasPermission('administer site configuration')) {
+  public function editPost($action, $postID = FALSE) {
+    if (Drupal::currentUser()->hasPermission('administer site configuration')) {
       switch ($action) {
         case 'edit':
           return [
-            Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback', $id),
-            ['#attached' => ['library' => ['yuraul0/form']]],
+            Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback', $postID),
+            [
+              '#attached' => [
+                'library' => [
+                  'yuraul0/form',
+                ],
+              ],
+            ],
           ];
 
         case 'delete':
-          if (Drupal::currentUser()->hasPermission('administer site configuration')) {
-            $record = Drupal::database()
-              ->select('guestbook')
-              ->condition('fid', $id)
-              ->execute();
-            $storage = Drupal::entityTypeManager()->getStorage('file');
-            $storage->delete($storage->loadByProperties(['uri' => $record['avatar']]));
-            $storage->delete($storage->loadByProperties(['uri' => $record['picture']]));
+          // Trying to get the post record from DB.
+          $record = Drupal::database()
+            ->select('guestbook')
+            ->fields('guestbook', self::FIELDS)
+            ->condition('fid', $postID)
+            ->execute()->fetchAll();
+          // If record for this post ID exists delete uploaded pictures and
+          // the record from DB.
+          if ($record) {
+            // Delete avatar file if exists.
+            if ($record[0]->avatar !== '') {
+              Drupal::entityTypeManager()
+                ->getStorage('file')
+                ->load($record[0]->avatar)
+                ->delete();
+            }
+            // Delete post picture file if exists.
+            if ($record[0]->picture !== '') {
+              Drupal::entityTypeManager()
+                ->getStorage('file')
+                ->load($record[0]->picture)
+                ->delete();
+            }
+            // Delete record from DB.
             $res = Drupal::database()
               ->delete('guestbook')
-              ->condition('fid', "$id")
+              ->condition('fid', "$postID")
               ->execute();
-            if ($res) {
-              Drupal::messenger()->addMessage("Post $id successfully deleted!");
-            }
-            else {
-              Drupal::messenger()->addError("Post #$id not found!");
-            }
+            // Setting the message about successful deleting of the post.
+            Drupal::messenger()->addMessage("Post $postID successfully deleted!");
+          }
+          // Setting the error message if post with post ID was not found.
+          else {
+            Drupal::messenger()->addError("Post #$postID not found!");
           }
       }
     }
+    // Throwing exception if user has no permissions to edit.
     else {
       throw new AccessDeniedHttpException();
     }
-    return $this->feedback();
+    return $this->redirect('yuraul0.feedback');
   }
 
   public function admin() {

@@ -14,6 +14,17 @@ use Drupal\file\Entity\File;
  * Implements a form with AJAX validation for adding feedback.
  */
 class AddFeedback extends FormBase {
+  // Setting array with fields of record in DB and of form inputs.
+  private const FIELDS = [
+    'fid',
+    'message',
+    'picture',
+    'timestamp',
+    'username',
+    'email',
+    'phone',
+    'avatar',
+  ];
 
   /**
    * Just returns the form ID.
@@ -33,26 +44,14 @@ class AddFeedback extends FormBase {
    * @return array
    *   Returns element for the render array.
    */
-  public function buildForm(array $form, FormStateInterface $form_state, $post_ID = NULL) {
-    // Setting array with fields of record in DB and of form inputs.
-    $fields = [ // TODO: Define it as a constant.
-      'fid',
-      'message',
-      'picture',
-      'timestamp',
-      'username',
-      'email',
-      'phone',
-      'avatar',
-    ];
-
+  public function buildForm(array $form, FormStateInterface $form_state, $post_ID = FALSE) {
     // Setting the form title.
     $title = $this->t('Add feedback');
 
     // If received $postID get appropriate post from DB if exists.
     if ($post_ID) {
       $query = Drupal::database()->select('guestbook');
-      $query->fields('guestbook', $fields);
+      $query->fields('guestbook', self::FIELDS);
       $query->condition('fid', $post_ID);
       $post = $query->execute()->fetchAll();
       if ($post ?? FALSE) {
@@ -64,7 +63,7 @@ class AddFeedback extends FormBase {
     }
     // Setting default values to empty string if postID was not received.
     else {
-      foreach ($fields as $field) {
+      foreach (self::FIELDS as $field) {
         $post[0][$field] = '';
       }
       // Casting array to object to access to it with object syntax.
@@ -323,7 +322,7 @@ class AddFeedback extends FormBase {
     Drupal::database()->insert('guestbook')->fields($record)->execute();
 
     // Setting message of succesful adding of feedback message.
-    Drupal::messenger()->addMessage($this->t('Thank you @name, for your feedback!', [
+    Drupal::messenger()->addMessage($this->t('Thank you @name for your feedback!', [
       '@name' => $form_state->getValue('username'),
     ]));
   }
@@ -345,7 +344,7 @@ class AddFeedback extends FormBase {
     // to current path and deleting error messages from messenger (because it
     // will be there after redirect).
     if (count($form_state->getErrors()) === 0) {
-      $ajax_response->addCommand(new RedirectCommand('/feedback'));
+      $ajax_response->addCommand(new RedirectCommand('/feedback')); // TODO: Check if a route name can be here
       Drupal::messenger()->deleteByType('error');
     }
     // Else sending response with rendered errors to show it in form.

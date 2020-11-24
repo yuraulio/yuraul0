@@ -57,6 +57,8 @@ img.avatar {
 }
 
 .post-message {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   padding: 15px;
   border: 1px solid white;
@@ -107,12 +109,15 @@ img.avatar {
 }
 
 .admin {
+  flex-grow: 1;
+
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
 }
 
-.admin button + button {
+.admin button + button,
+.admin div + button {
   margin-left: 15px;
 }
 

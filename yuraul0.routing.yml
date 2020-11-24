@@ -23,7 +23,7 @@ yuraul0.admin:
     _permission: 'administer site configuration'
 
 yuraul0.edit:
-  path: '/feedback/action/{action}/{id}'
+  path: '/feedback/action/{action}/{postID}'
   defaults:
     _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::editPost'
     _title: 'Edit post'
