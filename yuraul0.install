@@ -43,7 +43,7 @@ function yuraul0_schema() {
         'description' => 'User\'s feedback text.',
       ],
       'picture' => [
-        'type' => 'varchar',
+        'type' => 'varchar', // TODO: Change to int.
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
@@ -78,7 +78,7 @@ function yuraul0_schema() {
         'description' => 'The phone number of the user.',
       ],
       'avatar' => [
-        'type' => 'varchar',
+        'type' => 'varchar', // TODO: Change to int.
         'length' => 255,
         'not null' => TRUE,
         'default' => '',

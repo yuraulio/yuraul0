@@ -3,6 +3,7 @@
 namespace Drupal\yuraul0\Form;
 
 use Drupal;
+use Drupal\Core\Url;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Ajax\AjaxResponse;
@@ -341,11 +342,10 @@ class AddFeedback extends FormBase {
   public function ajaxSubmitCallback(array &$form, FormStateInterface $form_state) {
     $ajax_response = new AjaxResponse();
     // If there are no validation errors sending response with redirect
-    // to current path and deleting error messages from messenger (because it
-    // will be there after redirect).
+    // to feedback page.
     if (count($form_state->getErrors()) === 0) {
-      $ajax_response->addCommand(new RedirectCommand('/feedback')); // TODO: Check if a route name can be here
-      Drupal::messenger()->deleteByType('error');
+      $url = Url::fromRoute('yuraul0.feedback')->toString();
+      $ajax_response->addCommand(new RedirectCommand($url));
     }
     // Else sending response with rendered errors to show it in form.
     else {

@@ -135,7 +135,7 @@ class Yuraul0Controller extends ControllerBase {
                 ->delete();
             }
             // Delete record from DB.
-            $res = Drupal::database()
+            $res = Drupal::database() // TODO: Do something with it or delete.
               ->delete('guestbook')
               ->condition('fid', "$postID")
               ->execute();
