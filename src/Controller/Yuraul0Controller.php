@@ -33,16 +33,28 @@ class Yuraul0Controller {
 
     // Setting default user profile picture of not exist.
     foreach ($feedbacks as $post) {
-      if ($post->avatar === '') {
+      if ($post->avatar === '') { // TODO: Change type after changing avatar field in DB.
         $post->avatar = '/sites/default/files/yuraul0/user/default.png';
+      }
+      else {
+        // Converting avatar file ID to URL.
+        $post->avatar = Drupal::entityTypeManager()
+          ->getStorage('file')
+          ->load($post->avatar)
+          ->createFileUrl();
+      }
+
+      // Converting post picture file ID to URL.
+      if ($post->picture !== '') {
+        $post->picture = Drupal::entityTypeManager()
+          ->getStorage('file')
+          ->load($post->picture)
+          ->createFileUrl();
       }
       // And converting timestamp to human readable string.
       $post->timestamp = date('F/d/Y H:i:s', $post->timestamp);
     }
-    // Deleting records if it's too much.
-//    if (count($feedbacks) > 3) {
-//      Drupal::database()->delete('guestbook')->execute();
-//    }
+
     return $feedbacks;
   }
 
@@ -50,15 +62,16 @@ class Yuraul0Controller {
    * Builds the guestbook page.
    */
   public function feedback() {
-    // Adding form for sending post to page.
+    // Adding form for sending post to the page.
     $page[] = ['form' => Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback')];
 
     // Attaching style to the form.
     $page['form'][] = ['#attached' => ['library' => ['yuraul0/form']]];
 
-    // Gettingg path to page template.
+    // Getting path to page template.
     $template = file_get_contents(__DIR__ . '/feedback.html.twig');
-    $permission = \Drupal::currentUser()->hasPermission('administer site configuration');
+
+    $permission = Drupal::currentUser()->hasPermission('administer site configuration');
     // Adding list of posts with the template to render.
     $page[] = [
       'feedbacks' => [
@@ -67,18 +80,6 @@ class Yuraul0Controller {
         '#context' => [
           'posts' => $this->getFeedback(),
           'can_edit' => $permission,
-          'edit' => [
-            '#type' => 'button',
-            '#value' => 'Edit',
-            '#ajax' => [
-              'callback' => '::ajaxCallback',
-              'event' => 'click',
-              'progress' => [
-                'type' => 'throbber',
-                'message' => 'Editing...',
-              ],
-            ],
-          ],
         ],
         '#attached' => [
           'library' => [
@@ -87,14 +88,6 @@ class Yuraul0Controller {
         ],
       ],
     ];
-//    $query = \Drupal::entityQuery('file');
-//    $storage = \Drupal::entityTypeManager()->getStorage('file');
-//    $files = $storage->loadMultiple($query->execute());
-//    foreach ($files as $f) {
-//      if ($f->isPermanent()) {
-//        $f->delete();
-//      }
-//    }
 
     return $page;
   }
@@ -109,7 +102,14 @@ class Yuraul0Controller {
           ];
 
         case 'delete':
-          if (\Drupal::currentUser()->hasPermission('administer site configuration')) {
+          if (Drupal::currentUser()->hasPermission('administer site configuration')) {
+            $record = Drupal::database()
+              ->select('guestbook')
+              ->condition('fid', $id)
+              ->execute();
+            $storage = Drupal::entityTypeManager()->getStorage('file');
+            $storage->delete($storage->loadByProperties(['uri' => $record['avatar']]));
+            $storage->delete($storage->loadByProperties(['uri' => $record['picture']]));
             $res = Drupal::database()
               ->delete('guestbook')
               ->condition('fid', "$id")

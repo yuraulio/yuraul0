@@ -34,13 +34,49 @@ class AddFeedback extends FormBase {
    *   Returns element for the render array.
    */
   public function buildForm(array $form, FormStateInterface $form_state, $post_ID = NULL) {
-    // Div element to show messages into.
-    $form['fieldset'] = [
-      '#type' => 'fieldset',
-      '#title' => $this
-        ->t('Add feedback, post ID: @postID', ['@postID' => $post_ID ?? 'Empty']),
+    // Setting array with fields of record in DB and of form inputs.
+    $fields = [ // TODO: Define it as a constant.
+      'fid',
+      'message',
+      'picture',
+      'timestamp',
+      'username',
+      'email',
+      'phone',
+      'avatar',
     ];
 
+    // Setting the form title.
+    $title = $this->t('Add feedback');
+
+    // If received $postID get appropriate post from DB if exists.
+    if ($post_ID) {
+      $query = Drupal::database()->select('guestbook');
+      $query->fields('guestbook', $fields);
+      $query->condition('fid', $post_ID);
+      $post = $query->execute()->fetchAll();
+      if ($post ?? FALSE) {
+        $title = $this->t('Edit post# @postID', ['@postID' => $post_ID]);
+      }
+      else {
+        Drupal::messenger()->addError("Post #$post_ID not found!");
+      }
+    }
+    // Setting default values to empty string if postID was not received.
+    else {
+      foreach ($fields as $field) {
+        $post[0][$field] = '';
+      }
+      // Casting array to object to access to it with object syntax.
+      $post[0] = (object) $post[0];
+    }
+
+    $form['fieldset'] = [
+      '#type' => 'fieldset',
+      '#title' => $title,
+    ];
+
+    // Div element to show messages into.
     $form['fieldset']['system_messages'] = [
       '#markup' => '<div id="form-system-messages"></div>',
       '#weight' => -100,
@@ -79,6 +115,7 @@ class AddFeedback extends FormBase {
       '#title' => $this->t('Your name'),
       '#description' => $this->t('Only letters, numbers and underscore, please. Up to 100 symbols'),
       '#required' => TRUE,
+      '#default_value' => $post[0]->username,
     ];
 
     $form['fieldset']['upper']['left']['email'] = [
@@ -87,6 +124,7 @@ class AddFeedback extends FormBase {
       '#title' => $this->t('E-mail'),
       '#description' => $this->t('Only letters, numbers and underscore in account name. Only letters and "." (dot) in domain.'),
       '#required' => TRUE,
+      '#default_value' => $post[0]->email,
     ];
 
     $form['fieldset']['upper']['left']['phone'] = [
@@ -96,6 +134,7 @@ class AddFeedback extends FormBase {
       '#description' => $this->t('International format (+XXXXYYYYYYYYYYYY, X = 1-4 digits)'),
       '#required' => TRUE,
       '#resizable' => 'both',
+      '#default_value' => $post[0]->phone,
     ];
 
     $form['fieldset']['upper']['right']['avatar'] = [
@@ -109,6 +148,7 @@ class AddFeedback extends FormBase {
         'file_validate_extensions' => ['png jpg jpeg'],
         'file_validate_size' => [2097152],
       ],
+      '#default_value' => [$post[0]->avatar],
     ];
 
     $form['fieldset']['upper']['right']['picture'] = [
@@ -121,6 +161,7 @@ class AddFeedback extends FormBase {
         'file_validate_extensions' => ['png jpg jpeg'],
         'file_validate_size' => [5242880],
       ],
+      '#default_value' => [$post[0]->picture],
     ];
 
     $form['fieldset']['message'] = [
@@ -129,6 +170,7 @@ class AddFeedback extends FormBase {
       '#title' => $this->t('Your feedback message'),
       '#description' => $this->t('Up to 500 symbols.'),
       '#required' => TRUE,
+      '#default_value' => $post[0]->message,
     ];
 
     $form['fieldset']['submit'] = [
@@ -227,10 +269,10 @@ class AddFeedback extends FormBase {
       $file = File::load(($fid));
       $file->setPermanent();
       $file->save();
-      return $file->createFileUrl();
+      return $file->id();
     }
     else {
-      return '';
+      return ''; // TODO: Change returned default type after changing field in DB.
     }
   }
 

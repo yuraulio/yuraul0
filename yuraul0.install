@@ -31,7 +31,7 @@ function yuraul0_schema() {
     'description' => 'Stores feedback messages with user information.',
     'fields' => [
       'fid' => [
-        'type' => 'serial',
+        'type' => 'serial', // Check if starts with the 1.
         'not null' => TRUE,
         'unsigned' => TRUE,
         'description' => 'Primary Key: Unique feedback ID.',
