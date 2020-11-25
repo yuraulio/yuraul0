@@ -10,22 +10,14 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Ajax\RedirectCommand;
 use Drupal\file\Entity\File;
+use Drupal\yuraul0\Utility\PostStorageTrait;
 
 /**
  * Implements a form with AJAX validation for adding feedback.
  */
 class AddFeedback extends FormBase {
-  // Setting array with fields of record in DB and of form inputs.
-  private const FIELDS = [
-    'fid',
-    'message',
-    'picture',
-    'timestamp',
-    'username',
-    'email',
-    'phone',
-    'avatar',
-  ];
+
+  use PostStorageTrait;
 
   /**
    * Just returns the form ID.
@@ -52,10 +44,7 @@ class AddFeedback extends FormBase {
 
     // If received $postID get appropriate post from DB if exists.
     if ($post_ID) {
-      $query = Drupal::database()->select('guestbook');
-      $query->fields('guestbook', self::FIELDS);
-      $query->condition('fid', $post_ID);
-      $post = $query->execute()->fetchAll();
+      $post = $this->getPosts($post_ID);
       if ($post ?? FALSE) {
         $title = $this->t('Edit post# @postID', ['@postID' => $post_ID]);
         $submit_title = $this->t('Save');
@@ -66,7 +55,7 @@ class AddFeedback extends FormBase {
     }
     // Setting default values to empty string if postID was not received.
     else {
-      foreach (self::FIELDS as $field) {
+      foreach ($this->dbFields as $field) {
         $post[0][$field] = '';
       }
       // Casting array to object to access to it with object syntax.
