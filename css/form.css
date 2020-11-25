@@ -64,6 +64,10 @@ form.add-feedback .form-textarea-wrapper {
   padding: 0 15px;
 }
 
+form.add-feedback actions {
+  display: flex;
+}
+
 form.add-feedback input.button {
   border-radius: 0;
   background-image: none;

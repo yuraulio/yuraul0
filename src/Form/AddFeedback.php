@@ -175,13 +175,36 @@ class AddFeedback extends FormBase {
       '#default_value' => $post[0]->message,
     ];
 
-    $form['fieldset']['submit'] = [
+    $form['fieldset']['actions'] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => [
+          'actions',
+        ],
+      ],
+    ];
+
+    $form['fieldset']['actions']['save'] = [
       '#type' => 'submit',
-      '#name' => 'submit',
+      '#name' => 'save',
       '#button_type' => 'primary',
       '#value' => $submit_title,
       '#ajax' => [
         'callback' => '::ajaxSubmitCallback',
+        'event' => 'click',
+        'progress' => [
+          'type' => 'throbber',
+        ],
+      ],
+    ];
+
+    $form['fieldset']['actions']['delete'] = [
+      '#type' => 'submit',
+      '#name' => 'delete',
+      '#button_type' => 'primary',
+      '#value' => 'Delete',
+      '#ajax' => [
+        'callback' => '::delete',
         'event' => 'click',
         'progress' => [
           'type' => 'throbber',
@@ -320,12 +343,36 @@ class AddFeedback extends FormBase {
       $record[$v] = $form_state->getValue($v);
     }
 
-    // URLs to user profile picture and message picture.
-    $record['avatar'] = $this->savePics('avatar', $form_state);
-    $record['picture'] = $this->savePics('picture', $form_state);
-
     $postID = $form_state->getValue('post_id');
+
     if ($postID) {
+      $stored = Drupal::database()
+        ->select('guestbook')
+        ->fields('guestbook', self::FIELDS)
+        ->condition('fid', $postID)
+        ->execute()->fetchAll()[0];
+      $received = $form_state->getValue('avatar')[0];
+      if ($stored->avatar != $received) {
+        // Delete the old file and update record in DB.
+        if ($stored->avatar) {
+          File::load($stored->avatar)->delete();
+          $record['avatar'] = '';
+        }
+        if ($received) {
+          $record['avatar'] = $this->savePics('avatar', $form_state);
+        }
+      }
+      $received = $form_state->getValue('picture')[0];
+      if ($stored->picture != $received) {
+        // Delete the old file and update record in DB.
+        if ($stored->picture) {
+          File::load($stored->picture)->delete();
+          $record['picture'] = '';
+        }
+        if ($received) {
+          $record['picture'] = $this->savePics('picture', $form_state);
+        }
+      }
       // Update appropriate record in database.
       Drupal::database()
         ->update('guestbook')
@@ -338,6 +385,9 @@ class AddFeedback extends FormBase {
       ]));
     }
     else {
+      // URLs to user profile picture and message picture.
+      $record['avatar'] = $this->savePics('avatar', $form_state);
+      $record['picture'] = $this->savePics('picture', $form_state);
       // Adding posted time.
       $record['timestamp'] = time();
 
@@ -387,6 +437,12 @@ class AddFeedback extends FormBase {
       $ajax_response->addCommand(new HtmlCommand('#form-system-messages', $messages));
     }
 
+    return $ajax_response;
+  }
+
+  public function delete(array &$form, FormStateInterface $form_state) {
+    $ajax_response = new AjaxResponse();
+    $ajax_response->addCommand(new HtmlCommand('#form-system-messages', 'It works!'));
     return $ajax_response;
   }
 
