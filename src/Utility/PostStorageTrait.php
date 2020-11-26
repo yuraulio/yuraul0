@@ -28,7 +28,8 @@ trait PostStorageTrait {
    *   The ID of the needed post.
    *
    * @return bool
-   *   If post with the postID does not exist.
+   *   Array of objects with the post data or FALSE
+   *   if post with the postID does not exist.
    */
   public function getPosts($postID = FALSE) {
     $query = \Drupal::database()->select($this->dbName);
@@ -43,28 +44,38 @@ trait PostStorageTrait {
       $posts = $query->execute()->fetchAll();
     }
     catch (\Exception $e) {
-      \Drupal::messenger()->addError('Shit happens!');
-    }
-
-    // Setting default user profile picture of not exist.
-    foreach ($posts as $post) {
-      if ($post->avatar === '') { // TODO: Change type after changing avatar field in DB.
-        $post->avatar = '/sites/default/files/yuraul0/user/default.png';
-      }
-      else {
-        // Converting avatar file ID to URL.
-        $post->avatar = File::load($post->avatar)->createFileUrl();
-      }
-
-      // Converting post picture file ID to URL.
-      if ($post->picture !== '') {
-        $post->picture = File::load($post->picture)->createFileUrl();
-      }
-      // And converting timestamp to human readable string.
-      $post->timestamp = date('F/d/Y H:i:s', $post->timestamp);
+      \Drupal::messenger()->addError('Can\'t write  to DB. Error: ' . $e->getMessage());
     }
     return $posts ?? FALSE;
   }
+
+  public function deletePost ($postID) {
+    $post = $this->getPosts($postID);
+    if ($post) {
+      // TODO: Implement as a methods.
+      try {
+        if ($post->avatar !== '') {
+          File::load($post->avatar)->delete();
+        }
+        if ($post->picture !== '') {
+          File::load($post->picture)->delete();
+        }
+
+        $result = Drupal::database()
+          ->delete('guestbook')
+          ->condition('fid', "$postID")
+          ->execute();
+      }
+      catch (\Exception $e) {
+        \Drupal::messenger()->addError('Something wrong. Error: ' . $e->getMessage());
+      }
+    }
+    else {
+      \Drupal::messenger()->addError("Post #$postID not found!");
+    }
+    return $result ?? FALSE;
+  }
+
   public function editPost($action, $postID = FALSE) {
     if (Drupal::currentUser()->hasPermission('administer site configuration')) {
       switch ($action) {
