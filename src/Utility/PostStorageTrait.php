@@ -77,11 +77,11 @@ trait PostStorageTrait {
   }
 
   public function editPost($action, $postID = FALSE) {
-    if (Drupal::currentUser()->hasPermission('administer site configuration')) {
+    if (\Drupal::currentUser()->hasPermission('administer site configuration')) {
       switch ($action) {
         case 'edit':
           return [
-            Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback', $postID),
+            \Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback', $this->getPosts($postID)),
             [
               '#attached' => [
                 'library' => [

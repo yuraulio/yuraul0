@@ -20,7 +20,7 @@ class AddFeedback extends FormBase {
   use PostStorageTrait;
 
   /**
-   * Just returns the form ID.
+   * Just return the form ID.
    */
   public function getFormId() {
     return 'add_feedback';
@@ -38,33 +38,9 @@ class AddFeedback extends FormBase {
    *   Returns element for the render array.
    */
   public function buildForm(array $form, FormStateInterface $form_state, $post_ID = FALSE) {
-    // Setting the form title and submit button value.
-    $title = $this->t('Add feedback');
-    $submit_title = $this->t('Send feedback');
-
-    // If received $postID get appropriate post from DB if exists.
-    if ($post_ID) {
-      $post = $this->getPosts($post_ID);
-      if ($post ?? FALSE) {
-        $title = $this->t('Edit post# @postID', ['@postID' => $post_ID]);
-        $submit_title = $this->t('Save');
-      }
-      else {
-        Drupal::messenger()->addError("Post #$post_ID not found!");
-      }
-    }
-    // Setting default values to empty string if postID was not received.
-    else {
-      foreach ($this->dbFields as $field) {
-        $post[0][$field] = '';
-      }
-      // Casting array to object to access to it with object syntax.
-      $post[0] = (object) $post[0];
-    }
-
     $form['fieldset'] = [
       '#type' => 'fieldset',
-      '#title' => $title,
+      '#title' => $this->t('Add feedback'),
     ];
 
     // Div element to show messages into.
@@ -106,7 +82,6 @@ class AddFeedback extends FormBase {
       '#title' => $this->t('Your name'),
       '#description' => $this->t('Only letters, numbers and underscore, please. Up to 100 symbols'),
       '#required' => TRUE,
-      '#default_value' => $post[0]->username,
     ];
 
     $form['fieldset']['upper']['left']['email'] = [
@@ -115,7 +90,6 @@ class AddFeedback extends FormBase {
       '#title' => $this->t('E-mail'),
       '#description' => $this->t('Only letters, numbers and underscore in account name. Only letters and "." (dot) in domain.'),
       '#required' => TRUE,
-      '#default_value' => $post[0]->email,
     ];
 
     $form['fieldset']['upper']['left']['phone'] = [
@@ -125,7 +99,6 @@ class AddFeedback extends FormBase {
       '#description' => $this->t('International format (+XXXXYYYYYYYYYYYY, X = 1-4 digits)'),
       '#required' => TRUE,
       '#resizable' => 'both',
-      '#default_value' => "+{$post[0]->phone}",
     ];
 
     $form['fieldset']['upper']['right']['avatar'] = [
@@ -139,7 +112,6 @@ class AddFeedback extends FormBase {
         'file_validate_extensions' => ['png jpg jpeg'],
         'file_validate_size' => [2097152],
       ],
-      '#default_value' => [$post[0]->avatar],
     ];
 
     $form['fieldset']['upper']['right']['picture'] = [
@@ -152,7 +124,6 @@ class AddFeedback extends FormBase {
         'file_validate_extensions' => ['png jpg jpeg'],
         'file_validate_size' => [5242880],
       ],
-      '#default_value' => [$post[0]->picture],
     ];
 
     $form['fieldset']['message'] = [
@@ -161,7 +132,6 @@ class AddFeedback extends FormBase {
       '#title' => $this->t('Your feedback message'),
       '#description' => $this->t('Up to 500 symbols.'),
       '#required' => TRUE,
-      '#default_value' => $post[0]->message,
     ];
 
     $form['fieldset']['actions'] = [
@@ -177,7 +147,7 @@ class AddFeedback extends FormBase {
       '#type' => 'submit',
       '#name' => 'save',
       '#button_type' => 'primary',
-      '#value' => $submit_title,
+      '#value' => $this->t('Send feedback'),
       '#ajax' => [
         'callback' => '::ajaxSubmitCallback',
         'event' => 'click',
@@ -185,25 +155,6 @@ class AddFeedback extends FormBase {
           'type' => 'throbber',
         ],
       ],
-    ];
-
-    $form['fieldset']['actions']['delete'] = [
-      '#type' => 'submit',
-      '#name' => 'delete',
-      '#button_type' => 'primary',
-      '#value' => 'Delete',
-      '#ajax' => [
-        'callback' => '::delete',
-        'event' => 'click',
-        'progress' => [
-          'type' => 'throbber',
-        ],
-      ],
-    ];
-
-    $form['post_id'] = [
-      '#type' => 'hidden',
-      '#value' => $post_ID,
     ];
 
     return $form;
