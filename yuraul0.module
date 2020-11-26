@@ -1,25 +1,23 @@
 <?php
 
-//use Drupal\yuraul0\Utility\PostStorageTrait;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Implements hook_form_FORM_ID_alter().
- * Form ID: collect_phone
+ * Form ID: add_feedback
  */
 function yuraul0_form_add_feedback_alter(&$form, FormStateInterface  &$form_state) {
 
   $post = $form_state->getBuildInfo()['args'][0][0];
   if ($post) {
-    $form['fieldset']['#title'] = "Edit post# @postID";
+    $form['fieldset']['#title'] = t("Edit post# @postID", ['@postID' => $post->fid]);
     $form['fieldset']['upper']['left']['username']['#default_value'] = $post->username;
     $form['fieldset']['upper']['left']['email']['#default_value'] = $post->email;
     $form['fieldset']['upper']['left']['phone']['#default_value'] = "+{$post->phone}";
     $form['fieldset']['upper']['right']['avatar']['#default_value'] = [$post->avatar];
     $form['fieldset']['upper']['right']['picture']['#default_value'] = [$post->picture];
     $form['fieldset']['message']['#default_value'] = $post->message;
-    $form['fieldset']['actions']['save']['#value'] = 'Save';
+    $form['fieldset']['actions']['save']['#value'] = t('Save');
 
     $form['fieldset']['actions']['delete'] = [
       '#type' => 'submit',
