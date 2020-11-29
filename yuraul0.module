@@ -8,7 +8,7 @@ use Drupal\Core\Form\FormStateInterface;
  */
 function yuraul0_form_add_feedback_alter(&$form, FormStateInterface  &$form_state) {
 
-  $post = $form_state->getBuildInfo()['args'][0][0];
+  $post = $form_state->getBuildInfo()['args'][0][0] ?? FALSE;
   if ($post) {
     $form['fieldset']['#title'] = t("Edit post# @postID", ['@postID' => $post->fid]);
     $form['fieldset']['upper']['left']['username']['#default_value'] = $post->username;
@@ -17,7 +17,8 @@ function yuraul0_form_add_feedback_alter(&$form, FormStateInterface  &$form_stat
     $form['fieldset']['upper']['right']['avatar']['#default_value'] = [$post->avatar];
     $form['fieldset']['upper']['right']['picture']['#default_value'] = [$post->picture];
     $form['fieldset']['message']['#default_value'] = $post->message;
-    $form['fieldset']['actions']['save']['#value'] = t('Save');
+    $form['fieldset']['actions']['save']['#name'] = 'update';
+    $form['fieldset']['actions']['save']['#value'] = t('Update');
 
     $form['fieldset']['actions']['delete'] = [
       '#type' => 'submit',
@@ -25,17 +26,12 @@ function yuraul0_form_add_feedback_alter(&$form, FormStateInterface  &$form_stat
       '#button_type' => 'primary',
       '#value' => 'Delete',
       '#ajax' => [
-        'callback' => '::delete',
+        'callback' => '::showMessages',
         'event' => 'click',
         'progress' => [
           'type' => 'throbber',
         ],
       ],
-    ];
-
-    $form['postID'] = [
-      '#type' => 'hidden',
-      '#value' => $post->fid,
     ];
   }
 }

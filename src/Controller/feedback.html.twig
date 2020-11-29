@@ -1,3 +1,4 @@
+{% if posts %}
 <div class="post-container">
   <h2>Guests talking about us...</h2>
   {% for post in posts %}
@@ -28,14 +29,13 @@
           {% endif %}
         </div>
         {% if can_edit %}
-        <div class="admin">
-          <div class="post-id">Post #{{ post.fid }}</div>
-          <button><a href="/feedback/action/edit/{{ post.fid }}">Edit</a></button>
-          <button><a href="/feedback/action/delete/{{ post.fid }}">Delete</a></button>
-        </div>
+          <div class="admin">
+            <div class="post-id">Post #{{ post.fid }}</div>
+            <button><a href="/feedback/edit/{{ post.fid }}">Edit</a></button>
+          </div>
         {% endif %}
       </div>
     </article>
   {% endfor %}
 </div>
-
+{% endif %}

@@ -1,10 +1,18 @@
 yuraul0.feedback:
   path: '/feedback'
   defaults:
-    _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::feedback'
+    _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::show'
     _title: 'Yuraul Guestbook'
   requirements:
     _permission: 'access content'
+
+yuraul0.edit_feedback:
+  path: '/feedback/edit/{postID}'
+  defaults:
+    _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::edit'
+    _title: 'Yuraul Guestbook'
+  requirements:
+    _permission: 'administer site configuration'
 
 yuraul0.add_feedback:
   path: '/feedback/form/{postID}'
@@ -19,15 +27,5 @@ yuraul0.admin:
   defaults:
     _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::admin'
     _title: 'Guestbook settings'
-  requirements:
-    _permission: 'administer site configuration'
-
-yuraul0.edit:
-  path: '/feedback/action/{action}/{postID}'
-  defaults:
-    _controller: '\Drupal\yuraul0\Controller\Yuraul0Controller::editPost'
-    _title: 'Edit post'
-    action: ''
-    id: ''
   requirements:
     _permission: 'administer site configuration'

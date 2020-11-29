@@ -46,89 +46,96 @@ trait PostStorageTrait {
     catch (\Exception $e) {
       \Drupal::messenger()->addError('Can\'t write  to DB. Error: ' . $e->getMessage());
     }
-    return $posts ?? FALSE;
+    return !empty($posts) ? $posts : FALSE;
   }
 
-  public function deletePost ($postID) {
-    $post = $this->getPosts($postID);
-    if ($post) {
-      // TODO: Implement as a methods.
+  public function savePost($post, $postID = FALSE) {
+    if ($postID) {
+      $query = \Drupal::database()
+        ->update('guestbook')
+        ->fields($post)
+        ->condition('fid', $postID);
       try {
-        if ($post->avatar !== '') {
-          File::load($post->avatar)->delete();
-        }
-        if ($post->picture !== '') {
-          File::load($post->picture)->delete();
-        }
-
-        $result = Drupal::database()
-          ->delete('guestbook')
-          ->condition('fid', "$postID")
-          ->execute();
+        $query = $query->execute();
       }
       catch (\Exception $e) {
-        \Drupal::messenger()->addError('Something wrong. Error: ' . $e->getMessage());
+        \Drupal::messenger()->addError('Can\'t write  to DB. Error: ' . $e->getMessage());
       }
     }
     else {
-      \Drupal::messenger()->addError("Post #$postID not found!");
+      $query = \Drupal::database()
+        ->insert('guestbook')
+        ->fields($post);
+      $this->saveFile($post['avatar']);
+      $this->saveFile($post['picture']);
+      try {
+        $query = $query->execute();
+      }
+      catch (\Exception $e) {
+        \Drupal::messenger()->addError('Can\'t write  to DB. Error: ' . $e->getMessage());
+      }
     }
-    return $result ?? FALSE;
+    return $query ?? FALSE;
   }
 
-  public function editPost($action, $postID = FALSE) {
-    if (\Drupal::currentUser()->hasPermission('administer site configuration')) {
-      switch ($action) {
-        case 'edit':
-          return [
-            \Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback', $this->getPosts($postID)),
-            [
-              '#attached' => [
-                'library' => [
-                  'yuraul0/form',
-                ],
-              ],
-            ],
-          ];
-
-        case 'delete':
-          // Trying to get the post record from DB.
-          $record = Drupal::database()
-            ->select('guestbook')
-            ->fields('guestbook', self::FIELDS)
-            ->condition('fid', $postID)
-            ->execute()->fetchAll();
-          // If record for this post ID exists delete uploaded pictures and
-          // If record for this post ID exists delete uploaded pictures and
-          // the record from DB.
-          if ($record) {
-            // Delete avatar file if exists.
-            if ($record[0]->avatar !== '') {
-              File::load($record[0]->avatar)->delete();
-            }
-            // Delete post picture file if exists.
-            if ($record[0]->picture !== '') {
-              File::load($record[0]->picture)->delete();
-            }
-            // Delete record from DB.
-            $res = Drupal::database() // TODO: Do something with it or delete.
-            ->delete('guestbook')
-              ->condition('fid', "$postID")
-              ->execute();
-            // Setting the message about successful deleting of the post.
-            Drupal::messenger()->addMessage("Post $postID successfully deleted!");
-          }
-          // Setting the error message if post with post ID was not found.
-          else {
-            Drupal::messenger()->addError("Post #$postID not found!");
-          }
+  public function deletePost($postID, $avatarFID, $pictureFID) {
+    try {
+      if ($avatarFID !== '') {
+        $this->deleteFile($avatarFID);
+      }
+      if ($pictureFID !== '') {
+        $this->deleteFile($pictureFID);
       }
     }
-    // Throwing exception if user has no permissions to edit.
-    else {
-      throw new AccessDeniedHttpException();
+    catch (\Exception $e) {
+      \Drupal::messenger()
+        ->addError($this->t(
+          "Can't delete file. Error message: @msg"),
+          ['@msg' => $e->getMessage()]
+        );
     }
-    return $this->redirect('yuraul0.feedback');
+    try {
+      $result = \Drupal::database()
+        ->delete('guestbook')
+        ->condition('fid', $postID)
+        ->execute();
+      return !empty($result);
+    }
+    catch (\Exception $e) {
+      \Drupal::messenger()
+        ->addError($this->t(
+          "Can't delete record in DB. Error message: @msg"),
+          ['@msg' => $e->getMessage()]
+        );
+    }
+  }
+
+  public function saveFile($fid) {
+    if (!empty($fid)) {
+      $file = File::load(($fid));
+      $file->setPermanent();
+      $file->save();
+      \Drupal::service('file.usage')->add($file, 'yuraul0', 'file', $fid); // TODO: Insert module name programmatically
+      return $file->id();
+    }
+    else {
+      return ''; // TODO: Change returned default type after changing field in DB.
+    }
+  }
+
+  public function deleteFile($fid) {
+    if (!empty($fid)) {
+      try {
+        File::load($fid)->delete();
+      }
+      catch (\Exception $e) {
+        \Drupal::messenger()
+          ->addError($this->t("Can't delete file. Error message: @msg"), [
+            '@msg' => $e->getMessage(),
+          ]);
+      }
+    }
+    return '';
   }
 
 }

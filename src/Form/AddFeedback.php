@@ -2,6 +2,7 @@
 
 namespace Drupal\yuraul0\Form;
 
+use ClassesWithParents\D;
 use Drupal;
 use Drupal\Core\Url;
 use Drupal\Core\Form\FormBase;
@@ -11,6 +12,7 @@ use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Ajax\RedirectCommand;
 use Drupal\file\Entity\File;
 use Drupal\yuraul0\Utility\PostStorageTrait;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * Implements a form with AJAX validation for adding feedback.
@@ -37,7 +39,7 @@ class AddFeedback extends FormBase {
    * @return array
    *   Returns element for the render array.
    */
-  public function buildForm(array $form, FormStateInterface $form_state, $post_ID = FALSE) {
+  public function buildForm(array $form, FormStateInterface $form_state, $post = FALSE) {
     $form['fieldset'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Add feedback'),
@@ -145,11 +147,11 @@ class AddFeedback extends FormBase {
 
     $form['fieldset']['actions']['save'] = [
       '#type' => 'submit',
-      '#name' => 'save',
+      '#name' => 'add',
       '#button_type' => 'primary',
       '#value' => $this->t('Send feedback'),
       '#ajax' => [
-        'callback' => '::ajaxSubmitCallback',
+        'callback' => '::showMessages',
         'event' => 'click',
         'progress' => [
           'type' => 'throbber',
@@ -157,6 +159,8 @@ class AddFeedback extends FormBase {
       ],
     ];
 
+    // Attaching style to the form.
+    $form[] = ['#attached' => ['library' => ['yuraul0/form']]];
     return $form;
   }
 
@@ -220,34 +224,6 @@ class AddFeedback extends FormBase {
   }
 
   /**
-   * Saves userpic and post image and returns file URL.
-   *
-   * @param string $name
-   *   The name of the form element.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   An associative array containing the structure of the form.
-   *
-   * @return string
-   *   Returns URL of saved file or empty string if file wasn't added.
-   *
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   */
-  protected function savePics(string $name, FormStateInterface $form_state) {
-    // Get file ID from the submitted form and save the file as entity.
-    $fid = $form_state->getValue($name)[0] ?? NULL;
-    if (!empty($fid)) {
-      $file = File::load(($fid));
-      $file->setPermanent();
-      $file->save();
-      Drupal::service('file.usage')->add($file, 'yuraul0', 'file', $fid);
-      return $file->id();
-    }
-    else {
-      return ''; // TODO: Change returned default type after changing field in DB.
-    }
-  }
-
-  /**
    * Validates some form fields.
    *
    * @param array $form
@@ -257,7 +233,7 @@ class AddFeedback extends FormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     // Deleting all messages if stayed from previous validation.
-    Drupal::messenger()->deleteAll();
+    Drupal::messenger()->deleteByType('error');
 
     // Validating some fields before saving to database.
     $this->checkUsername($form_state);
@@ -277,69 +253,36 @@ class AddFeedback extends FormBase {
    * @throws \Exception
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Creating array contains a fields to create record to database.
-    // Text fields first.
-    foreach (['username', 'email', 'phone', 'message'] as $v) {
-      $record[$v] = $form_state->getValue($v);
+    switch ($form_state->getTriggeringElement()['#name']) {
+      case 'add':
+        if ($this->add($form_state)) {
+          // Setting message of succesful adding of feedback message.
+          Drupal::messenger()
+            ->addMessage($this->t('Thank you @name for your feedback!', [
+              '@name' => $form_state->getValue('username'),
+            ]));
+        }
+        break;
+
+      case 'update':
+        if ($this->update($form_state)) {
+          // Setting message of successful editing of the post.
+          Drupal::messenger()
+            ->addMessage($this->t('Post with ID @postID was successfully updated!', [
+              '@postID' => $form_state->getBuildInfo()['args'][0][0]->fid,
+            ]));
+        }
+        break;
+
+      case 'delete':
+        if ($this->delete($form_state)) {
+          // Setting message of successful editing of the post.
+          Drupal::messenger()
+            ->addMessage($this->t('Post with ID @postID was successfully deleted!', [
+              '@postID' => $form_state->getBuildInfo()['args'][0][0]->fid,
+            ]));
+        }
     }
-
-    $postID = $form_state->getValue('post_id');
-
-    if ($postID) {
-      $stored = Drupal::database()
-        ->select('guestbook')
-        ->fields('guestbook', self::FIELDS)
-        ->condition('fid', $postID)
-        ->execute()->fetchAll()[0];
-      $received = $form_state->getValue('avatar')[0];
-      if ($stored->avatar != $received) {
-        // Delete the old file and update record in DB.
-        if ($stored->avatar) {
-          File::load($stored->avatar)->delete();
-          $record['avatar'] = '';
-        }
-        if ($received) {
-          $record['avatar'] = $this->savePics('avatar', $form_state);
-        }
-      }
-      $received = $form_state->getValue('picture')[0];
-      if ($stored->picture != $received) {
-        // Delete the old file and update record in DB.
-        if ($stored->picture) {
-          File::load($stored->picture)->delete();
-          $record['picture'] = '';
-        }
-        if ($received) {
-          $record['picture'] = $this->savePics('picture', $form_state);
-        }
-      }
-      // Update appropriate record in database.
-      Drupal::database()
-        ->update('guestbook')
-        ->fields($record)
-        ->condition('fid', $postID)
-        ->execute();
-      // Setting message of successful editing of the post.
-      Drupal::messenger()->addMessage($this->t('Post #@postID was successfully updated!', [
-        '@postID' => $postID,
-      ]));
-    }
-    else {
-      // URLs to user profile picture and message picture.
-      $record['avatar'] = $this->savePics('avatar', $form_state);
-      $record['picture'] = $this->savePics('picture', $form_state);
-      // Adding posted time.
-      $record['timestamp'] = time();
-
-      // Saving received and validated data to database.
-      Drupal::database()->insert('guestbook')->fields($record)->execute();
-
-      // Setting message of succesful adding of feedback message.
-      Drupal::messenger()->addMessage($this->t('Thank you @name for your feedback!', [
-        '@name' => $form_state->getValue('username'),
-      ]));
-    }
-
   }
 
   /**
@@ -353,11 +296,11 @@ class AddFeedback extends FormBase {
    * @return \Drupal\Core\Ajax\AjaxResponse
    *   AJAX response object with HTML or redirect command.
    */
-  public function ajaxSubmitCallback(array &$form, FormStateInterface $form_state) {
+  public function showMessages(array &$form, FormStateInterface $form_state) {
     $ajax_response = new AjaxResponse();
     // If there are no validation errors sending response with redirect
     // to feedback page.
-    if (count($form_state->getErrors()) === 0) {
+    if (!$form_state->hasAnyErrors()) {
       $url = Url::fromRoute('yuraul0.feedback')->toString();
       $ajax_response->addCommand(new RedirectCommand($url));
     }
@@ -380,10 +323,40 @@ class AddFeedback extends FormBase {
     return $ajax_response;
   }
 
-  public function delete(array &$form, FormStateInterface $form_state) {
-    $ajax_response = new AjaxResponse();
-    $ajax_response->addCommand(new HtmlCommand('#form-system-messages', 'It works!'));
-    return $ajax_response;
+  protected function prepareToSave(FormStateInterface $form_state) {
+    foreach ($form_state->getValues() as $key => $value) {
+      if (in_array($key, $this->dbFields)) {
+        $post[$key] = $value;
+      }
+    }
+    $post['avatar'] = $post['avatar'][0] ?? '';
+    $post['picture'] = $post['picture'][0] ?? '';
+    return $post;
+  }
+
+  public function add(FormStateInterface $form_state) {
+    $post = $this->prepareToSave($form_state);
+    $post['timestamp'] = time();
+    return $this->savePost($post);
+  }
+
+  public function update(FormStateInterface $form_state) {
+    $old = $form_state->getBuildInfo()['args'][0][0];
+    $post = $this->prepareToSave($form_state);
+    if ($old->avatar != $post['avatar']) {
+      $this->deleteFile($old->avatar);
+    }
+    if ($old->picture != $post['picture']) {
+      $this->deleteFile($old->picture);
+    }
+    $post['timestamp'] = $old->timestamp;
+    return $this->savePost($post, $old->fid);
+  }
+
+  public function delete(FormStateInterface $form_state) {
+    $post = $form_state->getBuildInfo()['args'][0][0] ?? FALSE;
+    return $this->deletePost($post->fid, $post->avatar, $post->picture);
   }
 
 }
+
