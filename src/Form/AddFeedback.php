@@ -2,10 +2,10 @@
 
 namespace Drupal\yuraul0\Form;
 
-use Drupal;
 use Drupal\Core\Url;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\file\Entity\File;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Ajax\RedirectCommand;
@@ -34,6 +34,7 @@ class AddFeedback extends FormBase {
   protected function getModuleName() {
     return 'yuraul0';
   }
+
   /**
    * Builds the form to render.
    *
@@ -41,6 +42,9 @@ class AddFeedback extends FormBase {
    *   An associative array containing the elements of the form.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   An associative array containing the structure of the form.
+   * @param array|bool $post
+   *   The object with a post data or FALSE
+   *   if form is rendering to add new post.
    *
    * @return array
    *   Returns element for the render array.
@@ -157,7 +161,7 @@ class AddFeedback extends FormBase {
       '#button_type' => 'primary',
       '#value' => $this->t('Send feedback'),
       '#ajax' => [
-        'callback' => '::showMessages',
+        'callback' => '::ajaxSubmit',
         'event' => 'click',
         'progress' => [
           'type' => 'throbber',
@@ -167,6 +171,7 @@ class AddFeedback extends FormBase {
 
     // Attaching style to the form.
     $form[] = ['#attached' => ['library' => ['yuraul0/form']]];
+
     return $form;
   }
 
@@ -239,7 +244,7 @@ class AddFeedback extends FormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     // Deleting all messages if stayed from previous validation.
-    Drupal::messenger()->deleteByType('error');
+    \Drupal::messenger()->deleteByType('error');
 
     // Validating some fields before saving to database.
     $this->checkUsername($form_state);
@@ -259,12 +264,13 @@ class AddFeedback extends FormBase {
    * @throws \Exception
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    // Check the name of the submit button to know which action to do.
     switch ($form_state->getTriggeringElement()['#name']) {
       case 'add':
         if ($this->add($form_state)) {
           // Setting message of succesful adding of feedback message.
-          Drupal::messenger()
-            ->addMessage($this->t('Thank you @name for your feedback!', [
+          \Drupal::messenger()
+            ->addMessage($this->t('Thank you, @name, for your feedback!', [
               '@name' => $form_state->getValue('username'),
             ]));
         }
@@ -273,21 +279,20 @@ class AddFeedback extends FormBase {
       case 'update':
         if ($this->update($form_state)) {
           // Setting message of successful editing of the post.
-          Drupal::messenger()
+          \Drupal::messenger()
             ->addMessage($this->t('Post with ID @postID was successfully updated!', [
-              '@postID' => $form_state->getBuildInfo()['args'][0][0]->fid,
+              '@postID' => $form_state->getBuildInfo()['args'][0][0]->post_id,
             ]));
         }
         break;
 
       case 'delete':
-        if ($this->delete($form_state)) {
-          // Setting message of successful editing of the post.
-          Drupal::messenger()
-            ->addMessage($this->t('Post with ID @postID was successfully deleted!', [
-              '@postID' => $form_state->getBuildInfo()['args'][0][0]->fid,
-            ]));
-        }
+        $this->delete($form_state);
+        // Setting message of successful editing of the post.
+        \Drupal::messenger()
+          ->addMessage($this->t('Post with ID @postID was successfully deleted!', [
+            '@postID' => $form_state->getBuildInfo()['args'][0][0]->post_id,
+          ]));
     }
   }
 
@@ -302,7 +307,7 @@ class AddFeedback extends FormBase {
    * @return \Drupal\Core\Ajax\AjaxResponse
    *   AJAX response object with HTML or redirect command.
    */
-  public function showMessages(array &$form, FormStateInterface $form_state) {
+  public function ajaxSubmit(array &$form, FormStateInterface $form_state) {
     $ajax_response = new AjaxResponse();
     // If there are no validation errors sending response with redirect
     // to feedback page.
@@ -314,7 +319,7 @@ class AddFeedback extends FormBase {
     else {
       $message = [
         '#theme' => 'status_messages',
-        '#message_list' => Drupal::messenger()->all(),
+        '#message_list' => \Drupal::messenger()->all(),
         '#status_headings' => [
           'status' => t('Status message'),
           'error' => t('Error message'),
@@ -322,13 +327,24 @@ class AddFeedback extends FormBase {
         ],
         '#marckup' => time(),
       ];
-      $messages = Drupal::service('renderer')->render($message);
+      $messages = \Drupal::service('renderer')->render($message);
       $ajax_response->addCommand(new HtmlCommand('#form-system-messages', $messages));
     }
 
     return $ajax_response;
   }
 
+  /**
+   * Get needed fields from user input appropriate to $dbFields from the trait.
+   *
+   * Change avatar and picture values to direct access.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   A FormStateInterface object of submitted form.
+   *
+   * @return mixed
+   *   An array
+   */
   protected function prepareToSave(FormStateInterface $form_state) {
     foreach ($form_state->getValues() as $key => $value) {
       if (in_array($key, $this->dbFields)) {
@@ -340,29 +356,63 @@ class AddFeedback extends FormBase {
     return $post;
   }
 
+  /**
+   * Build a complete array of post data and save it.
+   *
+   * Add timestamp element too.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   A FormStateInterface object of submitted form.
+   *
+   * @return bool|\Drupal\Core\Database\Query\Insert|\Drupal\Core\Database\Query\Update|\Drupal\Core\Database\StatementInterface|int|string
+   *   A result of saving.
+   */
   public function add(FormStateInterface $form_state) {
     $post = $this->prepareToSave($form_state);
     $post['timestamp'] = time();
     return $this->savePost($post);
   }
 
+  /**
+   * Build an array of post data to update it.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   A FormStateInterface object of submitted form.
+   *
+   * @return bool|\Drupal\Core\Database\Query\Insert|\Drupal\Core\Database\Query\Update|\Drupal\Core\Database\StatementInterface|int|string
+   *   A result of updating.
+   */
   public function update(FormStateInterface $form_state) {
+    // Get the data form was filled with when was building.
+    // So it's old data.
     $old = $form_state->getBuildInfo()['args'][0][0];
+
+    // Get the user submitted data.
     $post = $this->prepareToSave($form_state);
+
+    // If user changed pictures, delete old first.
+    // If pictures was not exist deleteFile method even can process it.
     if ($old->avatar != $post['avatar']) {
       $this->deleteFile($old->avatar);
     }
     if ($old->picture != $post['picture']) {
       $this->deleteFile($old->picture);
     }
+
+    // Get the old timesmtamp when post was created not updated.
     $post['timestamp'] = $old->timestamp;
     return $this->savePost($post, $old->post_id);
   }
 
+  /**
+   * Delete the chosen post (a record from DB and files in filesystem).
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   A FormStateInterface object of submitted form.
+   */
   public function delete(FormStateInterface $form_state) {
     $post = $form_state->getBuildInfo()['args'][0][0] ?? FALSE;
-    return $this->deletePost($post->post_id, $post->avatar, $post->picture);
+    $this->deletePost($post->post_id, $post->avatar, $post->picture);
   }
 
 }
-
