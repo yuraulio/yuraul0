@@ -15,12 +15,19 @@ class Yuraul0Controller extends ControllerBase {
 
   use PostStorageTrait;
 
+  /**
+   * {@inheritdoc}
+   */
+  protected function getModuleName() {
+    return 'yuraul0';
+  }
+
   protected function prepareForRender ($posts) {
     if ($posts) {
       // Setting default user profile picture of not exist.
       foreach ($posts as $post) {
-        if ($post->avatar === '') { // TODO: Change type after changing avatar field in DB.
-          $post->avatar = '/sites/default/files/yuraul0/user/default.png';
+        if ($post->avatar == '0') {
+          $post->avatar = "sites/default/files/{$this->getModuleName()}/user/default.png";
         }
         else {
           // Converting avatar file ID to URL.
@@ -28,7 +35,7 @@ class Yuraul0Controller extends ControllerBase {
         }
 
         // Converting post picture file ID to URL.
-        if ($post->picture !== '') {
+        if ($post->picture !== '0') {
           $post->picture = File::load($post->picture)->createFileUrl();
         }
         // And converting timestamp to human readable string.
@@ -48,7 +55,7 @@ class Yuraul0Controller extends ControllerBase {
 //    }
 
     // Getting path to page template.
-    $template = file_get_contents(__DIR__ . '/feedback.html.twig');
+    $template = file_get_contents($this->getModulePath() . '/templates/feedback.html.twig');
 
     $permission = Drupal::currentUser()->hasPermission('administer site configuration');
     // Adding list of posts with the template to render.

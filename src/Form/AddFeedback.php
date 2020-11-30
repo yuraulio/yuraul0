@@ -2,7 +2,6 @@
 
 namespace Drupal\yuraul0\Form;
 
-use ClassesWithParents\D;
 use Drupal;
 use Drupal\Core\Url;
 use Drupal\Core\Form\FormBase;
@@ -10,9 +9,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Ajax\RedirectCommand;
-use Drupal\file\Entity\File;
 use Drupal\yuraul0\Utility\PostStorageTrait;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * Implements a form with AJAX validation for adding feedback.
@@ -28,6 +25,15 @@ class AddFeedback extends FormBase {
     return 'add_feedback';
   }
 
+  /**
+   * Name of our module.
+   *
+   * @return string
+   *   A module name.
+   */
+  protected function getModuleName() {
+    return 'yuraul0';
+  }
   /**
    * Builds the form to render.
    *
@@ -329,8 +335,8 @@ class AddFeedback extends FormBase {
         $post[$key] = $value;
       }
     }
-    $post['avatar'] = $post['avatar'][0] ?? '';
-    $post['picture'] = $post['picture'][0] ?? '';
+    $post['avatar'] = $post['avatar'][0] ?? '0';
+    $post['picture'] = $post['picture'][0] ?? '0';
     return $post;
   }
 
@@ -350,12 +356,12 @@ class AddFeedback extends FormBase {
       $this->deleteFile($old->picture);
     }
     $post['timestamp'] = $old->timestamp;
-    return $this->savePost($post, $old->fid);
+    return $this->savePost($post, $old->post_id);
   }
 
   public function delete(FormStateInterface $form_state) {
     $post = $form_state->getBuildInfo()['args'][0][0] ?? FALSE;
-    return $this->deletePost($post->fid, $post->avatar, $post->picture);
+    return $this->deletePost($post->post_id, $post->avatar, $post->picture);
   }
 
 }

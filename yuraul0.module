@@ -10,7 +10,7 @@ function yuraul0_form_add_feedback_alter(&$form, FormStateInterface  &$form_stat
 
   $post = $form_state->getBuildInfo()['args'][0][0] ?? FALSE;
   if ($post) {
-    $form['fieldset']['#title'] = t("Edit post# @postID", ['@postID' => $post->fid]);
+    $form['fieldset']['#title'] = t("Edit post# @postID", ['@postID' => $post->post_id]);
     $form['fieldset']['upper']['left']['username']['#default_value'] = $post->username;
     $form['fieldset']['upper']['left']['email']['#default_value'] = $post->email;
     $form['fieldset']['upper']['left']['phone']['#default_value'] = "+{$post->phone}";

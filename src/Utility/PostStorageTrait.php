@@ -3,12 +3,11 @@
 namespace Drupal\yuraul0\Utility;
 
 use Drupal\file\Entity\File;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 trait PostStorageTrait {
   protected $dbName = 'guestbook';
   protected $dbFields = [
-    'fid',
+    'post_id',
     'message',
     'picture',
     'timestamp',
@@ -17,6 +16,19 @@ trait PostStorageTrait {
     'phone',
     'avatar',
   ];
+
+  /**
+   * Name of our module.
+   *
+   * @return string
+   *   A module name.
+   */
+  abstract protected function getModuleName();
+
+  protected function getModulePath() {
+    $path = drupal_get_path('module', $this->getModuleName());
+    return $path;
+  }
 
   /**
    * Return array of objects with the post data ready to render.
@@ -34,17 +46,17 @@ trait PostStorageTrait {
   public function getPosts($postID = FALSE) {
     $query = \Drupal::database()->select($this->dbName);
     $query->fields('guestbook', $this->dbFields);
-    $query->orderBy('guestbook.fid', 'DESC');
+    $query->orderBy('guestbook.post_id', 'DESC');
 
     if ($postID) {
-      $query->condition('fid', $postID);
+      $query->condition('post_id', $postID);
     }
 
     try {
       $posts = $query->execute()->fetchAll();
     }
     catch (\Exception $e) {
-      \Drupal::messenger()->addError('Can\'t write  to DB. Error: ' . $e->getMessage());
+      \Drupal::messenger()->addError($this->t("Can't write  load from DB. Error: @msg", ['@msg' => $e->getMessage()]));
     }
     return !empty($posts) ? $posts : FALSE;
   }
@@ -54,14 +66,14 @@ trait PostStorageTrait {
       $query = \Drupal::database()
         ->update('guestbook')
         ->fields($post)
-        ->condition('fid', $postID);
+        ->condition('post_id', $postID);
       $this->saveFile($post['avatar']);
       $this->saveFile($post['picture']);
       try {
         $query = $query->execute();
       }
       catch (\Exception $e) {
-        \Drupal::messenger()->addError('Can\'t write  to DB. Error: ' . $e->getMessage());
+        \Drupal::messenger()->addError($this->t("Can't write  to DB. Error: @msg"). ['@msg' => $e->getMessage()]);
       }
     }
     else {
@@ -74,7 +86,7 @@ trait PostStorageTrait {
         $query = $query->execute();
       }
       catch (\Exception $e) {
-        \Drupal::messenger()->addError('Can\'t write  to DB. Error: ' . $e->getMessage());
+        \Drupal::messenger()->addError($this->t("Can't write  to DB. Error: @msg"). ['@msg' => $e->getMessage()]);
       }
     }
     return $query ?? FALSE;
@@ -82,10 +94,10 @@ trait PostStorageTrait {
 
   public function deletePost($postID, $avatarFID, $pictureFID) {
     try {
-      if ($avatarFID !== '') {
+      if ($avatarFID != '0') {
         $this->deleteFile($avatarFID);
       }
-      if ($pictureFID !== '') {
+      if ($pictureFID != '0') {
         $this->deleteFile($pictureFID);
       }
     }
@@ -99,7 +111,7 @@ trait PostStorageTrait {
     try {
       $result = \Drupal::database()
         ->delete('guestbook')
-        ->condition('fid', $postID)
+        ->condition('post_id', $postID)
         ->execute();
       return !empty($result);
     }
@@ -117,12 +129,12 @@ trait PostStorageTrait {
       $file = File::load(($fid));
       $file->setPermanent();
       $file->save();
-      \Drupal::service('file.usage') // TODO: Insert module name programmatically
-        ->add($file, 'yuraul0', 'file', $fid);
+      \Drupal::service('file.usage')
+        ->add($file, $this->getModuleName(), 'file', $fid);
       return $file->id();
     }
     else {
-      return ''; // TODO: Change returned default type after changing field in DB.
+      return 0;
     }
   }
 
@@ -130,8 +142,8 @@ trait PostStorageTrait {
     if (!empty($fid)) {
       try {
         $file = File::load($fid);
-        \Drupal::service('file.usage') // TODO: Insert module name programmatically
-        ->delete($file, 'yuraul0', 'file', $fid, 0);
+        \Drupal::service('file.usage')
+          ->delete($file, $this->getModuleName(), 'file', $fid, 0);
         $file->delete();
       }
       catch (\Exception $e) {
@@ -141,7 +153,7 @@ trait PostStorageTrait {
           ]);
       }
     }
-    return '';
+    return 0;
   }
 
 }

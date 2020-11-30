@@ -16,7 +16,7 @@ use Drupal\Core\File\FileSystemInterface;
 function yuraul0_install() {
   $dir = 'public://yuraul0/user';
   Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY);
-  Drupal::service('file_system')->copy(__DIR__ . '/default.png', 'public://yuraul/user', FileSystemInterface::EXISTS_REPLACE);
+  Drupal::service('file_system')->copy(dirname(__DIR__) . '/images/default.png', $dir, FileSystemInterface::EXISTS_REPLACE);
 }
 
 /**
@@ -30,7 +30,7 @@ function yuraul0_schema() {
   $schema['guestbook'] = [
     'description' => 'Stores feedback messages with user information.',
     'fields' => [
-      'fid' => [
+      'post_id' => [
         'type' => 'serial', // Check if starts with the 1.
         'not null' => TRUE,
         'unsigned' => TRUE,
@@ -43,10 +43,10 @@ function yuraul0_schema() {
         'description' => 'User\'s feedback text.',
       ],
       'picture' => [
-        'type' => 'varchar', // TODO: Change to int.
+        'type' => 'int',
         'length' => 255,
         'not null' => TRUE,
-        'default' => '',
+        'default' => 0,
         'description' => 'URI of the attached file.',
       ],
       'timestamp' => [
@@ -78,15 +78,26 @@ function yuraul0_schema() {
         'description' => 'The phone number of the user.',
       ],
       'avatar' => [
-        'type' => 'varchar', // TODO: Change to int.
+        'type' => 'int', // TODO: Change to int.
         'length' => 255,
         'not null' => TRUE,
-        'default' => '',
+        'default' => 0,
         'description' => 'User\'s avatar.',
       ],
     ],
-    'primary key' => ['fid'],
+    'primary key' => ['post_id'],
   ];
 
   return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ *
+ * Copy default user picture to files folder.
+ */
+function yuraul0_uninstall() {
+  $dir = 'public://yuraul0/user';
+  Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY);
+  Drupal::service('file_system')->copy(dirname(__DIR__) . '/images/default.png', $dir, FileSystemInterface::EXISTS_REPLACE);
 }
