@@ -2,9 +2,8 @@
 
 namespace Drupal\yuraul0\Controller;
 
-use Drupal;
-use Drupal\Core\Controller\ControllerBase;
 use Drupal\file\Entity\File;
+use Drupal\Core\Controller\ControllerBase;
 use Drupal\yuraul0\Utility\PostStorageTrait;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -16,15 +15,28 @@ class Yuraul0Controller extends ControllerBase {
   use PostStorageTrait;
 
   /**
-   * {@inheritdoc}
+   * Return the module name.
    */
   protected function getModuleName() {
     return 'yuraul0';
   }
 
-  protected function prepareForRender ($posts) {
+  /**
+   * Change avatar, post picture and timestamp values to eligible to render.
+   *
+   * If user did not add avatar set default picture instead.
+   * Convert the ID of entity to the URL.
+   * Convert timestamp to formatted date and time.
+   *
+   * @param array|bool $posts
+   *   Array with posts or FALSE if there are no posts to display.
+   *
+   * @return array|bool
+   *   Array with prepared posts or FALSE if there are not so.
+   */
+  protected function prepareForRender($posts) {
     if ($posts) {
-      // Setting default user profile picture of not exist.
+      // Setting default user avatar if not exist.
       foreach ($posts as $post) {
         if ($post->avatar == '0') {
           $post->avatar = "sites/default/files/{$this->getModuleName()}/user/default.png";
@@ -46,19 +58,19 @@ class Yuraul0Controller extends ControllerBase {
   }
 
   /**
-   * Builds the guestbook page.
+   * Build a render array with posts and template to render.
+   *
+   * @return array
+   *   A render array.
    */
   public function feedback() {
-//    $files = \Drupal::entityQuery('file')->execute();
-//    foreach ($files as $file) {
-//      File::load($file)->delete();
-//    }
-
     // Getting path to page template.
     $template = file_get_contents($this->getModulePath() . '/templates/feedback.html.twig');
 
-    $permission = Drupal::currentUser()->hasPermission('administer site configuration');
-    // Adding list of posts with the template to render.
+    // Check if user has permissions to edit and add edit buttons if has.
+    $permission = \Drupal::currentUser()->hasPermission('administer site configuration');
+
+    // Add list of posts, template and permission value to array to be returned.
     $page['posts'] = [
       '#type' => 'inline_template',
       '#template' => $template,
@@ -72,43 +84,78 @@ class Yuraul0Controller extends ControllerBase {
         ],
       ],
     ];
+
     return $page;
   }
 
+  /**
+   * Build a guestbook main page.
+   *
+   * Add a form to add new posts and list of existing feedbacks.
+   *
+   * @return mixed
+   *   A render array.
+   */
   public function show() {
     // Adding form for sending post to the page.
-    $page[] = ['form' => Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback')];
+    $page[] = ['form' => \Drupal::formBuilder()->getForm('Drupal\yuraul0\Form\AddFeedback')];
 
     // Adding feedback list to the page.
     $page[] = $this->feedback();
 
     return $page;
 }
-  public function edit($postID) {
-    if (Drupal::currentUser()->hasPermission('administer site configuration')) {
+
+  /**
+   * Biuld a page to edit a post.
+   *
+   * Just form filled with a post to edit data.
+   *
+   * @param string $postID
+   *   ID of the post to edit.
+   *
+   * @return array|mixed
+   *   A render array.
+   */
+  public function edit(string $postID) {
+    // Check permissions.
+    if (\Drupal::currentUser()
+      ->hasPermission('administer site configuration')) {
       $post = $this->getPosts($postID);
+      // If post with the ID exists, build a form with its data filled.
       if ($post) {
         return [
-          'form' => Drupal::formBuilder()->getForm(
+          'form' => \Drupal::formBuilder()->getForm(
             'Drupal\yuraul0\Form\AddFeedback',
             $post),
         ];
       }
       // Setting the error message if post with post ID was not found.
       else {
-        Drupal::messenger()->addError("Post #$postID not found!"); // TODO: Wrap in t().
+        \Drupal::messenger()->addError($this
+          ->t('Post @postID not found!',
+          ['@postID' => $postID]));
         return $this->show();
       }
     }
+    // If user has no permissions throw exeption.
     else {
       throw new AccessDeniedHttpException();
     }
   }
 
+  /**
+   * A plug gor admin page.
+   *
+   * Not implemented. Just a little bit of markup.
+   *
+   * @return array
+   *   A render array.
+   */
   public function admin() {
     return [
       '#type' => 'markup',
-      '#markup' => t('<div style="color: red;">Admin!</div>'),
+      '#markup' => t('<div style="color: red;">There should be configuretion page but it is nothing to configure.</div>'),
     ];
   }
 

@@ -7,6 +7,7 @@
  */
 
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\file\Entity\File;
 
 /**
  * Implements hook_install().
@@ -15,14 +16,17 @@ use Drupal\Core\File\FileSystemInterface;
  */
 function yuraul0_install() {
   $dir = 'public://yuraul0/user';
-  Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY);
-  Drupal::service('file_system')->copy(dirname(__DIR__) . '/images/default.png', $dir, FileSystemInterface::EXISTS_REPLACE);
+  Drupal::service('file_system')
+    ->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY);
+  Drupal::service('file_system')
+    ->copy(__DIR__ . '/images/default.png', $dir, FileSystemInterface::EXISTS_REPLACE);
+
 }
 
 /**
  * Implements hook_schema().
  *
- * Defines the database table to store feeback messages and user information.
+ * Defines the database table to store feedback messages and user information.
  *
  * @see hook_schema()
  */
@@ -78,7 +82,7 @@ function yuraul0_schema() {
         'description' => 'The phone number of the user.',
       ],
       'avatar' => [
-        'type' => 'int', // TODO: Change to int.
+        'type' => 'int',
         'length' => 255,
         'not null' => TRUE,
         'default' => 0,
@@ -94,10 +98,20 @@ function yuraul0_schema() {
 /**
  * Implements hook_uninstall().
  *
- * Copy default user picture to files folder.
+ * Delete folder with user pictures and all files uploaded by the module.
  */
 function yuraul0_uninstall() {
-  $dir = 'public://yuraul0/user';
-  Drupal::service('file_system')->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY);
-  Drupal::service('file_system')->copy(dirname(__DIR__) . '/images/default.png', $dir, FileSystemInterface::EXISTS_REPLACE);
+  // Get all files.
+  $files = \Drupal::entityQuery('file')->execute();
+  // Delete if used by our module.
+  foreach ($files as $fid) {
+    $file = File::load($fid);
+    $usage = \Drupal::service('file.usage')->listUsage($file);
+    if (array_key_exists('yuraul0', $usage)) {
+      \Drupal::service('file.usage')->delete($file, 'yuraul0', 'file', $fid, 0);
+      $file->delete();
+    }
+  }
+  $dir = 'public://yuraul0';
+  Drupal::service('file_system')->deleteRecursive($dir);
 }

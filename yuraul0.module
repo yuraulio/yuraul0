@@ -7,7 +7,9 @@ use Drupal\Core\Form\FormStateInterface;
  * Form ID: add_feedback
  */
 function yuraul0_form_add_feedback_alter(&$form, FormStateInterface  &$form_state) {
-
+  // If buildForm() method received $postID we know form was invoked to
+  // edit post, so fill inputs with a values of appropriate post and
+  // change the name of save button and add delete submit button.
   $post = $form_state->getBuildInfo()['args'][0][0] ?? FALSE;
   if ($post) {
     $form['fieldset']['#title'] = t("Edit post# @postID", ['@postID' => $post->post_id]);
@@ -26,7 +28,7 @@ function yuraul0_form_add_feedback_alter(&$form, FormStateInterface  &$form_stat
       '#button_type' => 'primary',
       '#value' => 'Delete',
       '#ajax' => [
-        'callback' => '::showMessages',
+        'callback' => '::ajaxSubmit',
         'event' => 'click',
         'progress' => [
           'type' => 'throbber',

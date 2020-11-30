@@ -14,14 +14,6 @@ yuraul0.edit_feedback:
   requirements:
     _permission: 'administer site configuration'
 
-yuraul0.add_feedback:
-  path: '/feedback/form/{postID}'
-  defaults:
-    _form: 'Drupal\yuraul0\Form\AddFeedback'
-    _title: 'Drupal Custom module level 0 (task)'
-  requirements:
-    _permission: 'access content'
-
 yuraul0.admin:
   path: '/admin/config/yuraul0'
   defaults:
