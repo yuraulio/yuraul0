@@ -42,6 +42,11 @@ class Yuraul0Controller extends ControllerBase {
    * Builds the guestbook page.
    */
   public function feedback() {
+//    $files = \Drupal::entityQuery('file')->execute();
+//    foreach ($files as $file) {
+//      File::load($file)->delete();
+//    }
+
     // Getting path to page template.
     $template = file_get_contents(__DIR__ . '/feedback.html.twig');
 

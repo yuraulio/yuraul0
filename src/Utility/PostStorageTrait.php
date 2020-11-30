@@ -55,6 +55,8 @@ trait PostStorageTrait {
         ->update('guestbook')
         ->fields($post)
         ->condition('fid', $postID);
+      $this->saveFile($post['avatar']);
+      $this->saveFile($post['picture']);
       try {
         $query = $query->execute();
       }
@@ -115,7 +117,8 @@ trait PostStorageTrait {
       $file = File::load(($fid));
       $file->setPermanent();
       $file->save();
-      \Drupal::service('file.usage')->add($file, 'yuraul0', 'file', $fid); // TODO: Insert module name programmatically
+      \Drupal::service('file.usage') // TODO: Insert module name programmatically
+        ->add($file, 'yuraul0', 'file', $fid);
       return $file->id();
     }
     else {
@@ -126,7 +129,10 @@ trait PostStorageTrait {
   public function deleteFile($fid) {
     if (!empty($fid)) {
       try {
-        File::load($fid)->delete();
+        $file = File::load($fid);
+        \Drupal::service('file.usage') // TODO: Insert module name programmatically
+        ->delete($file, 'yuraul0', 'file', $fid, 0);
+        $file->delete();
       }
       catch (\Exception $e) {
         \Drupal::messenger()
